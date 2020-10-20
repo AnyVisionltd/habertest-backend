@@ -28,6 +28,8 @@ async def onejob(request, allocation_id):
     return single job
     """
     job = request.app["redis"].conn.hget("allocations", allocation_id)
+    if not job:
+        return web.json_response({"status": 404, "error": f"couldnt find allocation_id {allocation_id}"})
     data = json.loads(job)
     return web.json_response({"status": 200, "data": data})
 
