@@ -1,4 +1,6 @@
 import os
+import sys
+sys.path.pop(0)
 
 from utils import shell
 from utils import pci
