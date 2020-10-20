@@ -30,7 +30,7 @@ class Fulfiller(object):
         if not potential_fulfillers:
             allocation = await self.redis.allocations(allocation_id)
             allocation.update(status="unfulfillable", message="Allocator doesnt have resource_managers which can fulfill demands")
-            await self.redis.delete(allocation_id)
+            await self.redis.delete("allocations", allocation_id)
             return allocation
 
         log.debug(f"found potential fulfillers: {potential_fulfillers}")
