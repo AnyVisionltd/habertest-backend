@@ -1,1 +1,0 @@
-git@github.com:AnyVisionltd/devops-automation-infra.git
