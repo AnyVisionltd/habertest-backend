@@ -1,438 +1,76 @@
-automation-infra
-================
-###### DISCLOSURE
-This is an anyvision open-source project. It is written by the people for the people, if you find a bug, please fix it so everyone can benefit. And take into account that it is infrastructure, so tread softly.<br>
-In other words, pull requests are happily accepted :)
+hardware-provisioner
+====================
 
-## Table of Contents  
-* [Background](#background)
-* [Set Up your environment](#set-up-your-environment)
-    * [set working directory](#set-working-directory)
-    * [set connection file](#set-connection-file)
-    * [set docker](#set-docker)
-    * [set aws s3](#set-aws-s3)
-    * [set git](#set-git)
-* [Pytests](#pytests)
-* [Provisioning](#provisioning)
+This is a suite of services which manage the provisioning of hardware resources to AnyVision employees for testing purposes.
 
-## Background
+## Terminology
 
-Directory Structure and pythonpath calculation:
-All repos will be parallel to automation-infra repo.
-They will have folder called automation which will be added to pythonpath automatically. Imports should be relative to that.
-Inside automation folder will be another folder with the same name as the base repo (- replaced with _), and inside that relevant folders (plugins, utils, etc).
+**Test Infrastructure** - this is a suite of python scripts which can be invoked with PyTest that allows a user to easily write tests which integrate with the Lab.
 
-# set up your environment
+**Demands** - a set of requirements needed for a single test (CPU, Memory, GPUs, OS etc)
 
-## set Make
+**Resource** - a resource which the Test Infrastructure can run its tests on. Virtual Machines, Physical Servers, Edge Devices, Cloud Resources etc
 
-Install make
+**Resource Manager** - is the representative of all resources. Listens to the Allocate service for jobs and volunteers its resources
 
-*Ubuntu*: `sudo apt update && sudo apt -y install make`
+**Allocate Service** - handles requests from both the Test Infrastructure and Resourcemanager. Checks for finished jobs. Exposes data from Redis.
 
-*RHEL/CentOS*: `sudo yum -y install make`
+**Heartbeat Service** - very simple service for extending the duration of a resource reservation
 
-## set working directory
+## requirements
 
-First, let's create **new** directory which will contains all the relevant git repositories for the automation tests.
-why? This Directory will be the parent directory so we will be able to use your IDE to open all those repos in same window and work with the automation libraries
+ - docker (tested on version 19.03.5)
+ - make (tested on version GNU Make 4.1)
 
-```
-mkdir -p $HOME/automation_repos
-cd $HOME/automation_repos
-```
-> you can choose a different parent directory as much as you want
+## commands
 
-Now Let's clone the base git repo of the automation tests to the parent directory that you created above
+For your convenience, several commands have been added to this directory for you. You can avail of these by running `make <command>`, e.g. `make tests`
 
-```
-git clone git@github.com:AnyVisionltd/automation-infra.git
-cd automation-infra
+```shell
+$ make
+run                            runs the applications in docker-compose
+tests                          run all modules tests sequentially
+shell                          runs pipenv shell
+lint                           run all modules linters sequentially
+test-complexity                run only python complexity analysis
+test-security                  run only python security analysis
+test-lint-docker               run only docker linter
+test-lint-shellcheck           run only shell/bash linter
+clean                          clean up environment
 ```
 
-## set connection file
+**note:** each sub-directory also has it's own set of commands.
 
-**Makefile**
+## high level architecture
 
-```
-make -f Makefile-env set-connection-file
+![https://drive.google.com/open?id=1BOZt_jmk6GO5P5vGxP0tcgFOGRkaa5bB](docs/media/hw_provisioner.png)
 
-# OR
+## i want to run it manually
 
-make -f Makefile-env set-connection-file HOST_IP=<destination host ip> USERNAME=<ssh user on destination> PASS=<ssh password on destination>
-
-# OR
-
-make -f Makefile-env set-connection-file HOST_IP=<destination host ip> USERNAME=<ssh user on destination> key_file_path=<ssh pem key path>
-```
-
-**or**
-
-**Manual**
-
-Put a yaml file in your `$HOME/.local/hardware.yaml` which has similar structure to:
-```
-host:
-    ip: 192.168.xx.xxx
-    user: user
-    password: pass
-    key_file_path: /path/to/pem
-```
-> key_file_path and password are mutually exclusive so use only 1 type of auth
-
-## set docker
-
-### install docker
-
-**Makefile**
-```
-make -f Makefile-env docker-install
-```
-**or**
-
-**Manual**
-
-*Ubuntu*: https://docs.docker.com/install/linux/docker-ce/ubuntu
-
-*RHEL/CentOS*: https://docs.docker.com/install/linux/docker-ce/centos
-
-### docker login
-
-You will need to configure **docker login credentials** in your local machine so the pytest will be able to use your **docker login credentials** in the remote host that you mentioned in the `hardware.yaml` above for docker image pull from our private docker registry (gcr)
-
-#### docker login credentials using json file
-
-Ask from you devops guy your **docker login credentials** `json` file
-
-**Makefile**
-
-```
-make -f Makefile-env docker-config
-
-# OR
-
-make -f Makefile-env docker-config DOCKER_LOGIN_JSON_PATH=<path to json file>
-```
-
-**or**
-
-**Manual**
-
-```
-docker login "https://gcr.io" -u _json_key -p "$(cat <path to the json file> | tr '\n' ' ')" 
-
-# Example:
-docker login "https://gcr.io" -u _json_key -p "$(cat ~/.gcr/docker-registry-ro.json | tr '\n' ' ')"
-```
-
-## set aws s3
-
-### install aws cli
-
-**Makefile**
-
-```
-make -f Makefile-env aws-install
-```
-
-**or**
-
-**Manual**
-
-*Ubuntu / RHEL / CentOS*: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html
-
-> You will need to install `unzip` prior the `aws cli` installation
-
-
-### aws config credentials
-
-Ask from you devops guy your **aws login credentials**, you should get: `aws access key` and `aws secret key`
-
-**Makefile**
-
-```
-make -f Makefile-env aws-config
-# OR
-make -f Makefile-env aws-config S3_KEY=<access key> S3_SECRET=<secret key>
-```
->  you can use also `S3_REGION=<region>` (default: `eu-central-1`)
-
-**or**
-
-**Manual**
-
-set you aws config by running:
-
-```
-aws configure set aws_access_key_id <aws_access_key_id>
-aws configure set aws_secret_access_key <aws_secret_access_key>
-aws configure set default.region eu-central-1
-```
-
-## set git
-
-### install git cli
-
-**Makefile**
-
-```
-make -f Makefile-env git-install
-```
-
-**or**
-
-**Manual**
-
-*Ubuntu / RHEL / CentOS*: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
-
-### configure git credentials
-
-**github**:
-
-*token*: https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line
-
-or
-
-*ssh key*: https://help.github.com/en/enterprise/2.15/user/articles/adding-a-new-ssh-key-to-your-github-account 
-
-## git repositories
-
-Let's `git pull` all the relevant git repositories by product
-
-Now we can pull all the relevant git repositories by product
-
-**Makefile**
-
-```
-make -f Makefile-env git-pull
-
-# OR
-
-make -f Makefile-env git-pull PRODUCT=<product name>
-
-# OR clone using url instead of ssh
-
-make -f Makefile-env git-pull PRODUCT=<product name> CLONE_METHOD=url
-
-# OR clone using url instead of ssh and set user and token
-
-make -f Makefile-env git-pull PRODUCT=<product name> CLONE_METHOD=url GIT_USER=<user> GIT_TOKEN=<token>
-```
-**or**
-
-**Manual**
-
-git clone each line in $HOME/automation_repos/dev_environment/{product name}.txt
-```
-
-cat $HOME/automation_repos/automation-infra/dev_environment/{product name}.txt
-git clone -C $HOME/automation_repos/automation-infra {line}
-
-# Example:
-cat $HOME/automation_repos/dev_environment/core.txt
-# Output:
-git@github.com:AnyVisionltd/devops-automation-infra.git
-git@github.com:AnyVisionltd/camera-service.git
-git@github.com:AnyVisionltd/pipeng.git
-git@github.com:AnyVisionltd/protobuf-contract.git
-git@github.com:AnyVisionltd/core-products.git
-
-# clone:
-git -C $HOME/automation_repos clone git@github.com:AnyVisionltd/devops-automation-infra.git
-git -C $HOME/automation_repos clone git@github.com:AnyVisionltd/camera-service.git
-git -C $HOME/automation_repos clone git@github.com:AnyVisionltd/pipeng.git
-git -C $HOME/automation_repos clone git@github.com:AnyVisionltd/protobuf-contract.git
-git -C $HOME/automation_repos clone git@github.com:AnyVisionltd/core-product.git
-```
-
-At the end you will get this directory structure for **core** product
-```
-automation_repos
-├── automation-infra
-├── camera-service
-├── core-product
-├── devops-automation-infra
-├── pipeng
-└── protobuf-contract
-```
-
-
-# Pytests
-
-+ run ./run_tests.sh, this should pass, this means the repo and requirements are set up properly.
-if you get an error "sudo: a terminal is required..." then you need to be a sudoer. something like this should do the 
-trick (obv change 'user' with your username)
-
-```echo "user  ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/user```
-
-In addition, any pytest params can be used to along with the `run_tests.sh` script. A couple useful examples; 
-* -h shows a help
-* --pdb will drop out to pdb debugger when a test fails
-* -sv will print some more logging
-* pytest.ini file can be copied to test directory for realtime cli (and file) logging
-
-Instead of using `run_tests.sh` it is also possible to use `containerize.sh` which will take you into a container with all 
-settings configured and you can run whichever commands you would like inside the container.
-
-After that, in addition you should probably clone the following repos:
-
-**devops-automation-infra**: git@github.com:AnyVisionltd/devops-automation-infra.git<br>
-**camera_service**: git@github.com:AnyVisionltd/camera-service.git<br>
-**pipeng**: git@github.com:AnyVisionltd/pipeNG.git
-
-(Make sure the repos have the subfolder automation/[repo_name]/...)
-
-So for example the directory structure:
-```
-automation-infra
-    automation  # <- sources root / pythonpath
-        automation_infra
-            plugins
-                ssh.py
-            utils
-                util1.py
-            tests
-                test_example.py
-devops-automation-infra
-    automation  # <- sources root / pythonpath
-        devops-automation_infra
-            plugins
-                memsql.py
-                seaweed.py
-            utils
-                util1.py
-            tests
-                test_example.py
-camera_service
-    automation  # <- sources root / pythonpath
-        camera_service
-            plugins
-                camera_service.py
-            utils
-                cs_util.py
-            tests
-                test_sanity.py
-pipeng
-    automation  # <- sources root / pythonpath
-        pipeng
-            plugins
-                pipeng.py
-            utils
-                pipeng_util
-            tests
-...
-```
-And then the imports would be:
-```
-from automation_infra.plugins.ssh import SSH
-from pipeng.plugins.pipeng import Pipeng
-from camera_service.utils import cs_util
-```
-
-Anyvision Pytest plugins:
-----
-pytest plugins can be implemented to run custom setup/teardown logic over the infrastructure.
-Core has a plugin in core-product repo, in directory core-product/automation/core_product/pytest/core_compose_v2_manager.py
-It can be invoked like:  
-```
-./run_tests.sh -p core_product.pytest.core_compose_v2_manager /path/to/test
-```
-The plugin (if invoked) will copy over docker-compose-core.yaml from core-product repository (maintained by core team), 
-pull and up core compose v2... So this way it is possible to run tests on a "blank" machine, which doesnt have core 
-product running. 
-
-Anyone interested to implement test setup/teardown login in addition to what is provided can implement a pytest plugin of their own and invoke it in the same way. 
-
-
-# Provisioning
-
-make
-----
-
-A makefile has been provided for your convenience. Simply run `make` to see a
-list of possible commands.
-
-hypervisor
-----------
-
-### server
-
-To run the hypervisor server, first ensure you have the docker image,
-(`make build-hypervisor`), then you can run the server:
+If you want to run each container independently you can do so with the following commands:
 
 ```sh
-RUN_IMAGES_DIR=/home/pathto/images-run/ \
-BASE_IMAGE_DIR=/home/pathto/images \
-SSD_IMAGES_DIR=/home/pathto/images-ssd/ \
-HDD_IMAGES_DIR=/home/pathto/images-hdd/ \
-PARAVIRT_NET_DEVICE=yourNetworkDeviceId0 \
-CONFIG_FILE=/home/pathto/config/hypervisor.yaml \
-./deployment/hypervisor/run_hypervisor.sh
-```
+export MYIP=<INSERT YOUR MACHINES IP HERE>
 
-To view logs you can run `tail -f /var/log/syslog` or view it in journalctl
+# run redis in detached mode
+docker run --rm -d -e ALLOW_EMPTY_PASSWORD=yes -p 6379:6379 -ti redis:5.0.7
 
-### client
+# build and run allocate service
+cd ./hwprovisioner/allocate
+docker build -t=allocate .
+# note: replace $MYIP with the ip of your redis container (your machine ip probably)
+docker run --rm -e REDIS_USER=guest -e REDIS_PASSWORD=pAssw0Rd! -e REDIS_HOST=$MYIP -e REDIS_PORT=6379 -e REDIS_DB=0 -v $(pwd):/src -w /src -p 8080:8080 -ti allocate watchmedo auto-restart --recursive -d . -p '*.py' -- python3 -m 'webapp.app' serve
 
-you should now be able to run the client:
+# build and run resource manager (this can be anywhere on the network. works on localhost too ofc)
+cd ./hwprovisioner/resourcemanager
+vim resources.yml  # copy this from example.resources.yml and edit as required
+docker build -t=resourcemanager .
+# note: replace $MYIP with the ip of your allocate container (your machine ip probably)
+docker run --rm -e ALLOCATE_API=http://$MYIP:8080/ -e CONFIG_FILE=./resources.yml -p 9080:8080 -v $(pwd):/src -w /src -ti resourcemanager watchmedo auto-restart --recursive -d . -p '*.py' -- python3 -m 'webapp.app' serve
 
-```sh
-./hypervisor_cli.py --allocator=localhost:8080 create \
-  --image debian \ # $BASE_IMAGE_DIR/debian.qcow2
-  --ram 2 \
-  --cpus 2 \
-  bridge # network. bridge or isolated
-```
-
-pipenv
-------
-
-If you have pipenv installed you can enter this environment with:
-
-```sh
-make shell
-```
-
-tests
------
-
-You can run all tests with:
-
-```sh
-make tests
-```
-
-You can run all generic linters:
-
-```sh
-make lint
-```
-
-You can run individual analysis using:
-
-```sh
-make test-complexity      # run only complexity analysis
-make test-security        # run only security analysis
-make test-lint-python     # run only pylint
-make test-lint-shellcheck # run only shell/bash linter
-make test-lint-docker     # run only docker linter
-```
-
-## hwprovisoner architecture
-
-https://anyvision.atlassian.net/wiki/spaces/PROD/pages/1558806855
-
-## run backend services
-
-These steps will allow you to run allocate, redis and a resource manager:
-
-It is recommended you start by copying
-`./hwprovisioner/resourcemanager/example.resources.yml` to
-`./hwprovisioner/resourcemanager/resources.yml` and update the content to
-match the resources you have.
-
-
-```sh
-# note: RESOURCES_CONFIG_FILE is relative to ./hwprovisioner/resourcemanager/
-RESOURCES_CONFIG_FILE=./resources.yml make run-server
+# build and run heartbeats service
+cd ./hwprovisioner/heartbeats
+docker build -t=heartbeats .
+# note: replace $MYIP with the ip of your allocate container (your machine ip probably)
+docker run --rm -e REDIS_HOST=${MYIP} -e REDIS_PORT=6379 -e REDIS_DB=0 -e REDIS_USER=guest -e REDIS_PASSWORD=password -v ${PWD}:/src -w /src -p 7080:8080 -ti heartbeats watchmedo auto-restart --recursive -d . -p '*.py' -- python3 -m 'webapp.app' serve
 ```
