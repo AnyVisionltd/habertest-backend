@@ -2,7 +2,7 @@
 """
 import json
 
-from asynctest import patch
+import mock
 
 from ..webapp import heartbeats
 
@@ -31,10 +31,8 @@ class TestHeartbeats:
         """
         request = {}
         body = {"allocation_id": "1234"}
-        with patch(
-            "webapp.heartbeats.update_expires",
-        ) as update_expires:
-            resp = await heartbeats.heartbeat(request, body)
-            update_expires.assert_called_once()
-            assert resp.status == 200
-            assert json.loads(resp.text) == {"status": 200}
+        heartbeats.update_expires = mock.AsyncMock(return_value=None)
+        resp = await heartbeats.heartbeat(request, body)
+        heartbeats.update_expires.assert_called_once()
+        assert resp.status == 200
+        assert json.loads(resp.text) == {"status": 200}
