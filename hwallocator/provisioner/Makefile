@@ -14,5 +14,5 @@ build:
 
 .PHONY: tests
 tests:
-	HABERTEST_PROVISIONER=192.168.70.7:8080 HABERTEST_HEARTBEAT_SERVER=192.168.70.7:7080 HABERTEST_RESOURCE_MANAGER=192.168.70.35:9080 python -m pytest tests/test_provisioner_api.py -s
-
+	@cd ../.. && docker build -t unittests -f ./Dockerfile.unittests .
+	@docker run --rm -w /root/habertest_backend/hwallocator/provisioner unittests bash -c "HABERTEST_PROVISIONER=192.168.70.7:8080 HABERTEST_HEARTBEAT_SERVER=192.168.70.7:7080 HABERTEST_RESOURCE_MANAGER=192.168.21.163:9080 python3 -m pytest tests -s"
