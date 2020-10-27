@@ -11,4 +11,5 @@ build: ## builds the docker image
 
 .PHONY: tests
 tests:
-	@echo "TODO: write heartbeat_server unittests"
+	@cd ../.. && docker build -t unittests -f ./Dockerfile.unittests .
+	@docker run --rm -w /root/habertest_backend/hwallocator/heartbeat_server unittests bash -c "python3 -m pytest tests -s"
