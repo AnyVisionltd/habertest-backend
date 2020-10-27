@@ -1,4 +1,4 @@
-from lab.vms import vm
+from resource_managers.hypervisor.vms import vm
 import pytest
 
 
@@ -23,12 +23,12 @@ async def test_vm_json():
                     'requestor': None}
 
     machine = vm.VM(name="name", num_cpus=1, memsize=1,
-          net_ifaces=net_ifaces,
-          sol_port=2,
-          base_image='image',
-          uuid = '1234',
-          image='image1',
-          disks=[{"serial": "s1",
+                    net_ifaces=net_ifaces,
+                    sol_port=2,
+                    base_image='image',
+                    uuid = '1234',
+                    image='image1',
+                    disks=[{"serial": "s1",
                   "device_name": "dev1",
                   "image" : "image",
                   "type" : "hdd",

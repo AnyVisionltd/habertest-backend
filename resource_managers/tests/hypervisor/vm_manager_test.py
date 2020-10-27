@@ -1,8 +1,8 @@
 import pytest
-from lab.vms import image_store, libvirt_wrapper, vm_manager, storage,\
+from resource_managers.hypervisor.vms import image_store, libvirt_wrapper, vm_manager, storage,\
     cloud_init, dhcp_handlers
 import mock
-from lab.vms import vm
+from resource_managers.hypervisor.vms import vm
 
 
 @pytest.fixture
@@ -38,9 +38,9 @@ async def test_network_info_not_failing(event_loop, mock_libvirt, mock_image_sto
                   "type" : "hdd",
                   "size" : 10}]
     machine = vm.VM(name="name", num_cpus=1, memsize=1,
-                         net_ifaces=[], sol_port=2,
-                         base_image='image',
-                         disks=vm_images)
+                    net_ifaces=[], sol_port=2,
+                    base_image='image',
+                    disks=vm_images)
     info = await tested.info(machine)
     assert info['status'] == 'on'
 

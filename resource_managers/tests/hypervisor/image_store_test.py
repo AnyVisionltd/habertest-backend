@@ -1,9 +1,8 @@
 import pytest
-from lab.vms import image_store
+from resource_managers.hypervisor.vms import image_store
 import mock
 import asyncio
 import asynctest
-import uuid
 
 
 def _subprocess_mock():

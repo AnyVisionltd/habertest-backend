@@ -1,13 +1,12 @@
-from lab.vms import libvirt_wrapper
+from resource_managers.hypervisor.vms import libvirt_wrapper
 import mock
 from mock import patch
 import libvirt
 import xmltodict
-from lab.vms import vm
-from infra.utils import pci
+from resource_managers.hypervisor.vms import vm
+from resource_managers.utils import pci
 import munch
 import ipaddress
-import netaddr
 
 
 def _libvirt_mock():
@@ -22,18 +21,18 @@ def test_allocate_machine(libvirt_mock):
     gpu2 = mock.Mock(spec=pci.Device)
     gpu2.full_address = "a:b:ff:dd"
     machine_info = vm.VM(name="sasha",
-                               memsize=100,
-                               num_cpus=10,
-                               image="image.qcow",
-                               base_image="base",
-                               net_ifaces=[{"macaddress":"1:1:1:1:1",
+                         memsize=100,
+                         num_cpus=10,
+                         image="image.qcow",
+                         base_image="base",
+                         net_ifaces=[{"macaddress":"1:1:1:1:1",
                                            "source" : "eth0",
                                            "mode" : "isolated"},
                                             {"macaddress":"2:2:2:2:2",
                                            "source" : "eth1",
                                            "mode" : "bridge"}],
-                               sol_port=1000,
-                               pcis=[gpu1, gpu2])
+                         sol_port=1000,
+                         pcis=[gpu1, gpu2])
 
     tested.define_vm(machine_info)
     libvirt_mock.assert_called_once_with("test_uri")

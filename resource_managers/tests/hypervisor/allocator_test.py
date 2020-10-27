@@ -2,17 +2,17 @@ import asyncio
 
 import pytest
 
-from lab.vms import allocator, cloud_init
-from lab.vms import vm_manager, dhcp_handlers
-from infra.utils import pci
-from lab.vms import libvirt_wrapper
-from lab.vms import image_store
+from resource_managers.hypervisor.vms import allocator, cloud_init
+from resource_managers.hypervisor.vms import vm_manager, dhcp_handlers
+from resource_managers.utils import pci
+from resource_managers.hypervisor.vms import libvirt_wrapper
+from resource_managers.hypervisor.vms import image_store
 from lab import NotEnoughResourceException
 import mock
-from lab.vms import vm
+from resource_managers.hypervisor.vms import vm
 import copy
 import munch
-from lab.vms import storage
+from resource_managers.hypervisor.vms import storage
 from unittest.mock import call
 
 
@@ -38,8 +38,8 @@ def mock_dhcp_handler():
     return mock.Mock(spec=dhcp_handlers.DHCPManager)
 
 def _generate_device(num_gpus):
-    return [ pci.Device(domain=dev, bus=dev, slot=dev,
-               function=dev, info={"current_link_speed" : 1,
+    return [pci.Device(domain=dev, bus=dev, slot=dev,
+                       function=dev, info={"current_link_speed" : 1,
                                 "max_link_speed" : 1,
                                 "max_link_width" : 1,
                                 "current_link_width" : "1",
@@ -329,11 +329,11 @@ async def test_delete_machines_on_start(event_loop, mock_libvirt, mock_image_sto
     alloc = allocator.Allocator(macs, gpu1, manager, "sasha", max_vms=1, paravirt_device="eth0", sol_base_port=5000)
 
     existing_vms = [vm.VM(name="name1", num_cpus=1, memsize=1,
-                         net_ifaces=[], sol_port=2,
-                         base_image='image').json,
+                          net_ifaces=[], sol_port=2,
+                          base_image='image').json,
                     vm.VM(name="name2", num_cpus=11, memsize=11,
-                         net_ifaces=[], sol_port=22,
-                         base_image='image').json]
+                          net_ifaces=[], sol_port=22,
+                          base_image='image').json]
     mock_libvirt.load_lab_vms.return_value = existing_vms
     await alloc.delete_all_dangling_vms()
 
@@ -455,7 +455,7 @@ async def test_concurrent_allocation_and_free_resources(event_loop, mock_libvirt
     mock_dhcp_handler.allocate_ip = mock.AsyncMock(return_value="1.1.1.1")
     mock_cloud_init.generate_iso.return_value = "my_iso.iso"
     tested_allocator = allocator.Allocator(macs, gpu1, manager, "sasha", max_vms=1, paravirt_device="eth0",
-                                 sol_base_port=5000)
+                                           sol_base_port=5000)
 
     # check that creating too many vms concurrently will cause a problem:
     with pytest.raises(NotEnoughResourceException):

@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from infra.utils import shell, filesystem
+from resource_managers.utils import filesystem, shell, anylogging
 import os
 import glob
 import threading
@@ -80,7 +80,7 @@ class NBDProvisioner(object):
 
 if __name__ == '__main__':
     import argparse
-    from infra.utils import anylogging
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--fs", help="Filesystem type", required=False, default="ext4")
     parser.add_argument("--label", help="Label for the filesystem", required=False)

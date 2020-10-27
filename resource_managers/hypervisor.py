@@ -1,24 +1,16 @@
 import os
 
-from infra.utils import shell
-from infra.utils import pci
-from infra.utils import anylogging
 import logging
 import socket
 
-from lab.utils import heartbeat
-from lab.vms import rest, cloud_init
-from lab.vms import allocator
-from lab.vms import vm_manager
-from lab.vms import dhcp_handlers
-from lab.vms import libvirt_wrapper
-from lab.vms import image_store
-from lab.vms import storage as libstorage
+from resource_managers.utils import net
+from resource_managers.utils import pci, shell, anylogging, heartbeat
+from resource_managers.hypervisor.vms import rest, cloud_init, storage as libstorage, vm_manager, dhcp_handlers, \
+    libvirt_wrapper, allocator, image_store
 import asyncio
 from aiohttp import web
 import argparse
 import yaml
-from lab.utils import net
 
 
 def get_ip():
@@ -109,7 +101,8 @@ def _vfio_bind_pci_devices(devices):
 
 
 async def start_daemons(app):
-    app["heartbeats"] = app.loop.create_task(heartbeat.send_heartbeats(app['info'], os.getenv("HABERTEST_PROVISIONER", "localhost:8080")))
+    app["heartbeats"] = app.loop.create_task(
+        heartbeat.send_heartbeats(app['info'], os.getenv("HABERTEST_PROVISIONER", "localhost:8080")))
 
 
 if __name__ == '__main__':
@@ -143,7 +136,7 @@ if __name__ == '__main__':
     _check_network_interface_up(args.paravirt_net_device)
     _check_libvirt_network_is_up(vmm, args.private_net)
     storage = image_store.ImageStore(loop, base_qcow_path=args.images_dir,
-                                     run_qcow_path=args.run_dir,ssd_path=args.ssd_dir, hdd_path=args.hdd_dir)
+                                     run_qcow_path=args.run_dir, ssd_path=args.ssd_dir, hdd_path=args.hdd_dir)
     gpu_pci_devices = config['pci']
     _vfio_bind_pci_devices(config['pci'])
     ndb_driver = libstorage.NBDProvisioner()
