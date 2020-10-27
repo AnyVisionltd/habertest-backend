@@ -1,8 +1,6 @@
 import pytest
-from resource_managers.hypervisor.vms import image_store, libvirt_wrapper, vm_manager, storage,\
-    cloud_init, dhcp_handlers
+from hypervisor.vms import storage, vm_manager, libvirt_wrapper, dhcp_handlers, cloud_init, image_store, vm
 import mock
-from resource_managers.hypervisor.vms import vm
 
 
 @pytest.fixture

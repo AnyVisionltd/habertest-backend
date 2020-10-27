@@ -1,5 +1,5 @@
 import pytest
-from resource_managers.hypervisor.vms import image_store
+from hypervisor.vms import image_store
 import mock
 import asyncio
 import asynctest

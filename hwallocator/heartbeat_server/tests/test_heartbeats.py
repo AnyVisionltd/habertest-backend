@@ -4,7 +4,7 @@ import json
 
 from asynctest import patch
 
-from webapp import heartbeats
+from ..webapp import heartbeats
 
 
 class TestHeartbeats:

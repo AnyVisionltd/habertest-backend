@@ -1,7 +1,5 @@
 import asyncio
-import concurrent
 import random
-import time
 import uuid
 from asyncio import shield
 
@@ -32,7 +30,7 @@ class Fulfiller(object):
         if not potential_fulfillers:
             allocation = await self.redis.allocations(allocation_id)
             allocation.update(status="unfulfillable", message="Allocator doesnt have resource_managers which can fulfill demands")
-            await self.redis.delete(allocation_id)
+            await self.redis.delete("allocations", allocation_id)
             return allocation
 
         log.debug(f"found potential fulfillers: {potential_fulfillers}")
@@ -47,7 +45,8 @@ class Fulfiller(object):
                                                    status="allocating",
                                                    rm_endpoint=chosen_rm['endpoint'],
                                                    message="in progress")
-                    result = await shield(rm_requestor.allocate(chosen_rm['endpoint'], await self.redis.allocations(allocation_id)))
+                    result = await shield(
+                        rm_requestor.allocate(chosen_rm['endpoint'], await self.redis.allocations(allocation_id)))
                 except asyncio.CancelledError:
                     log.debug(f"allocate task was cancelled.")
                     await self.redis.update_status(allocation_id, status="cancelled",

@@ -1,9 +1,8 @@
 from contextlib import contextmanager
-from resource_managers.utils import filesystem, shell, anylogging
 import os
 import glob
 import threading
-from automation_infra.utils import waiter
+from utils import waiter, shell
 import logging
 
 
@@ -80,6 +79,7 @@ class NBDProvisioner(object):
 
 if __name__ == '__main__':
     import argparse
+    from utils import anylogging, shell, filesystem
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--fs", help="Filesystem type", required=False, default="ext4")

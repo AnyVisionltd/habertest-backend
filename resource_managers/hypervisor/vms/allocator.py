@@ -2,7 +2,7 @@ import logging
 import socket
 import errno
 
-from lab import NotEnoughResourceException
+from hypervisor import NotEnoughResourceException
 from . import vm
 import asyncio
 

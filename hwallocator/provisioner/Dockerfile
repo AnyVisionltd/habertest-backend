@@ -8,7 +8,7 @@ RUN echo 'manylinux1_compatible = True' > /usr/local/lib/python3.6/site-packages
 
 RUN pip3 install \
         pipenv==2018.11.26
-COPY ./Pipfile /src/Pipfile
+COPY Pipfile /src/Pipfile
 WORKDIR /src
 RUN pipenv lock && pipenv install --dev --system
 RUN apk del build-base gcc python3-dev && \

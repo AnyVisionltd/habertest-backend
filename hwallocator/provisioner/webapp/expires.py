@@ -5,9 +5,7 @@ import asyncio
 import json
 import time
 
-import aiohttp
-
-from . import fulfiller, rm_requestor
+from . import rm_requestor
 from .settings import log
 
 
