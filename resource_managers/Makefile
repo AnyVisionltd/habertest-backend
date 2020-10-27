@@ -11,3 +11,6 @@ build-hypervisor:
 .PHONY: run-hypervisor
 run-hypervisor:
 	@echo "TODO: cd hypervisor && ./deployment/hypervisor/run_hypervisor.sh"
+
+.PHONY: tests
+tests: test-hypervisor
