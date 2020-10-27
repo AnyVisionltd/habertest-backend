@@ -43,7 +43,7 @@ clean                          clean up environment
 
 ## high level architecture
 
-![https://drive.google.com/open?id=1BOZt_jmk6GO5P5vGxP0tcgFOGRkaa5bB](./media/hw_provisioner.png)
+![https://drive.google.com/open?id=1BOZt_jmk6GO5P5vGxP0tcgFOGRkaa5bB](../docs/media/hw_provisioner.png)
 
 ## i want to run it manually
 
