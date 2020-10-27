@@ -1,7 +1,7 @@
 import re
 import logging
 import munch
-from resource_managers.utils import shell
+from . import shell
 from builtins import staticmethod
 import os
 

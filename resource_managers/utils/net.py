@@ -1,4 +1,5 @@
-from resource_managers.utils import shell
+from . import shell
+# from utils import shell
 import logging
 import netifaces
 import ipaddress
