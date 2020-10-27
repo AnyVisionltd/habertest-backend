@@ -1,12 +1,15 @@
+from datetime import datetime
 import getpass
 import os
 import socket
+import sys
 import time
+import uuid
 
 import aiohttp
 import pytest
 
-from webapp import rm_requestor
+from ..webapp import rm_requestor
 
 RESOURCE_MANAGER = os.getenv("HABERTEST_RESOURCE_MANAGER", "localhost:9080")
 PROVISIONER = os.getenv("HABERTEST_PROVISIONER", "localhost:8080")
@@ -32,7 +35,15 @@ async def test_resource_manager_requestor_happy_flow():
 async def request_hardware(demands):
     async with aiohttp.ClientSession() as client:
         websocket = await client.ws_connect("http://%s/api/ws/jobs" % PROVISIONER)
-        await websocket.send_json({"data": {"demands": demands}})
+        requestor_information = dict(hostname=os.getenv("host_hostname", socket.gethostname()),
+                                         username=getpass.getuser(),
+                                         ip=os.getenv("host_ip", socket.gethostbyname(socket.gethostname())),
+                                         creation_time=str(datetime.now()),
+                                         running_cmd=" ".join(sys.argv)
+                                         )
+        await websocket.send_json({"data": {"demands": demands,
+                                            "allocation_id": str(uuid.uuid4()),
+                                            "requestor": requestor_information}})
         reply = await websocket.receive_json(timeout=60)
         assert reply['status'] == 'success', f"wasnt sucessful allocating {reply['message']}"
     return reply
@@ -56,7 +67,7 @@ async def get_details(allocation_id):
     async with aiohttp.ClientSession() as client:
         async with client.get("http://%s/api/jobs/%s" % (PROVISIONER, allocation_id)) as resp:
             res_json = await resp.json()
-            assert res_json['status'] == 200
+            assert res_json['status'] in [200, 404]
     return res_json
 
 
@@ -67,15 +78,13 @@ async def test_provision_expire_automatically():
     allocation_id = reply['allocation_id']
 
     await send_heartbeat(allocation_id)
-    time.sleep(35)
-
+    time.sleep(45)
     details = await get_details(allocation_id)
-    assert details['data']['status'] in ['deallocated', 'deallocating'], \
-                f"Allocated job {allocation_id} wasnt deallocated automatically"
+    assert details['status'] == 404, f"Allocated job {allocation_id} wasnt deallocated automatically"
 
 
 @pytest.mark.asyncio
-async def test_provision_complete_flow():
+async def test_provision_happy_flow():
     """Set ip:port of PROVISIONER, HEARTBEAT"""
     hardware_req = {"host": {}}
     reply = await request_hardware(hardware_req)
