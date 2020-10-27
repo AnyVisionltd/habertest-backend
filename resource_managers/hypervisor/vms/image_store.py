@@ -89,7 +89,7 @@ class ImageStore(object):
 if __name__ == '__main__':
     import argparse
     import pprint
-    from resource_managers.utils import anylogging
+    from habertest_backend.resource_managers.utils import anylogging
 
     anylogging.configure_logging(console_level=logging.DEBUG, file_level=logging.NOTSET)
     parser = argparse.ArgumentParser()

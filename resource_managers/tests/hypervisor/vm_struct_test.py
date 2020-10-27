@@ -1,4 +1,4 @@
-from resource_managers.hypervisor.vms import vm
+from hypervisor.vms import vm
 import pytest
 
 

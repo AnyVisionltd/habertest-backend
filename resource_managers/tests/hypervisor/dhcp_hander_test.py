@@ -1,5 +1,5 @@
 import pytest
-from resource_managers.hypervisor.vms import dhcp_handlers, libvirt_wrapper
+from hypervisor.vms import libvirt_wrapper, dhcp_handlers
 import mock
 import ipaddress
 

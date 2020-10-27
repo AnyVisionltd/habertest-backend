@@ -1,16 +1,20 @@
-import os
+class NotEnoughResourceException(Exception):
+    pass
 
+import os
 import logging
 import socket
 
-from resource_managers.utils import net
-from resource_managers.utils import pci, shell, anylogging, heartbeat
-from resource_managers.hypervisor.vms import rest, cloud_init, storage as libstorage, vm_manager, dhcp_handlers, \
+from utils import net
+from utils import pci, shell, anylogging, heartbeat
+from hypervisor.vms import rest, cloud_init, storage as libstorage, vm_manager, dhcp_handlers, \
     libvirt_wrapper, allocator, image_store
 import asyncio
 from aiohttp import web
 import argparse
 import yaml
+
+
 
 
 def get_ip():

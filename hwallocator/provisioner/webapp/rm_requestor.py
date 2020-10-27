@@ -10,10 +10,11 @@ async def theoretically_fulfill(resource_manager, data):
            async with session.post(url, data=json.dumps(data)) as resp:
                result = await resp.json()
                if resp.status != 200:
-                   return None
+                   raise Exception("cant theoretically fulfill")
                # TODO: add cant theoretically fulfull possibility..
                return resource_manager
     except:
+        raise
         return None
 
 

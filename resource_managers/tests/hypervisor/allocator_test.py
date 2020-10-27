@@ -2,17 +2,14 @@ import asyncio
 
 import pytest
 
-from resource_managers.hypervisor.vms import allocator, cloud_init
-from resource_managers.hypervisor.vms import vm_manager, dhcp_handlers
-from resource_managers.utils import pci
-from resource_managers.hypervisor.vms import libvirt_wrapper
-from resource_managers.hypervisor.vms import image_store
-from lab import NotEnoughResourceException
+from hypervisor import NotEnoughResourceException
+from utils import pci
+
 import mock
-from resource_managers.hypervisor.vms import vm
 import copy
 import munch
-from resource_managers.hypervisor.vms import storage
+from hypervisor.vms import storage, vm_manager, libvirt_wrapper, dhcp_handlers, cloud_init, \
+    image_store, vm, allocator
 from unittest.mock import call
 
 

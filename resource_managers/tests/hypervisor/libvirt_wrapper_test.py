@@ -1,10 +1,9 @@
-from resource_managers.hypervisor.vms import libvirt_wrapper
+from hypervisor.vms import libvirt_wrapper, vm
 import mock
 from mock import patch
 import libvirt
 import xmltodict
-from resource_managers.hypervisor.vms import vm
-from resource_managers.utils import pci
+from utils import pci
 import munch
 import ipaddress
 

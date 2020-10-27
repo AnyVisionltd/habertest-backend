@@ -13,7 +13,7 @@ ROOT_IMAGES_DIR="${ROOT_IMAGES_DIR:-/ssd/vms/root_images}"
 SSD_IMAGES_DIR="${SSD_IMAGES_DIR:-/ssd/vms/ssd_images}"
 HDD_IMAGES_DIR="${HDD_IMAGES_DIR:-/storage/vms/hdd_images}"
 PROJECT_DIR="${PROJECT_DIR:-$ROOT_DIR}"
-CONFIG_FILE="${CONFIG_FILE:-$PROJECT_DIR/config/hypervisor.yaml}"
+CONFIG_FILE="${CONFIG_FILE:-$PROJECT_DIR/hypervisor/config/hypervisor.yaml}"
 MAX_VMS="${MAX_VMS:-1}"
 LOG_LEVEL="${LOG_LEVEL:-DEBUG}"
 DEFAULT_NIC=$(ip route show default | head -1  | awk '{print $5}')
@@ -24,10 +24,9 @@ KERNEL_LIBS=/lib/modules/$(uname -r)
 LIBVIRT_SOCK=/var/run/libvirt/libvirt-sock
 HABERTEST_PROVISIONER="localhost:8080"
 
-python3 ${PROJECT_DIR}/tools/config_hypervisor.py --max-vms ${MAX_VMS}
+python3 ${PROJECT_DIR}/hypervisor/tools/config_hypervisor.py --max-vms ${MAX_VMS}
 
-
-files_sum=$(find ${PROJECT_DIR}/lab/ ${PROJECT_DIR}/Dockerfile.hypervisor -type f -exec md5sum {} \; | sort -k 2 | md5sum | awk {'print $1'} | awk '{print substr($1,1,12)}')
+files_sum=$(find ${PROJECT_DIR}/ ${PROJECT_DIR}/Dockerfile.hypervisor -type f -exec md5sum {} \; | sort -k 2 | md5sum | awk {'print $1'} | awk '{print substr($1,1,12)}')
 HYPERVISOR_DOCKER_TAG="${HYPERVISOR_DOCKER_TAG:-$files_sum}"
 
 if [[ "$(docker images -q "hypervisor:${HYPERVISOR_DOCKER_TAG}" 2> /dev/null)" == "" ]]; then

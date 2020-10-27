@@ -1,6 +1,6 @@
 import tempfile
 import yaml
-from resource_managers.utils import shell
+from utils import shell
 import os
 import logging
 
