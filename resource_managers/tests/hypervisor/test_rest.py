@@ -1,18 +1,17 @@
 from concurrent.futures._base import CancelledError
 
 import pytest
-from lab.vms import allocator, vm
-from lab.vms import vm_manager
-from infra.utils import pci
-from lab.vms import libvirt_wrapper
-from lab.vms import image_store
-from lab.vms import storage
-from lab.vms import cloud_init
-from lab.vms import dhcp_handlers
+from resource_managers.hypervisor.vms import allocator, vm
+from resource_managers.hypervisor.vms import vm_manager
+from resource_managers.utils import pci
+from resource_managers.hypervisor.vms import libvirt_wrapper
+from resource_managers.hypervisor.vms import image_store
+from resource_managers.hypervisor.vms import storage
+from resource_managers.hypervisor.vms import cloud_init
+from resource_managers.hypervisor.vms import dhcp_handlers
 import mock
 from aiohttp import web
-from lab.vms import rest
-import uuid
+from resource_managers.hypervisor.vms import rest
 
 
 @pytest.fixture

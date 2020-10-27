@@ -1,4 +1,4 @@
-from infra.utils import shell
+from resource_managers.utils import shell
 import logging
 import netifaces
 import ipaddress
