@@ -12,7 +12,7 @@ RUN  apt update -y && \
 RUN pip3 install aiohttp munch jinja2 PyYAML netifaces ipaddress xmltodict netaddr scapy pytest \
     mock pytest-asyncio asynctest aiohttp pytest-aiohttp ipdb
 
-COPY . /root/resource_managers
+COPY . /root/habertest_backend
 
-WORKDIR /root/resource_managers
+WORKDIR /root/habertest_backend
 CMD bash
