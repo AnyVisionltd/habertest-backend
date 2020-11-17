@@ -31,7 +31,7 @@ class VM(object):
     @property
     def json(self):
         attrs = {
-            k: getattr(self, k) for k in dir(self) if not callable(k) and not k.startswith('__')}
+            k: getattr(self, k) for k in dir(self) if not callable(k) and not k.startswith('__') and not k == 'json'}
         pci_vals = attrs.pop('pcis', None)
         attrs['pcis'] = [pci.full_address for pci in pci_vals] if pci_vals else None
         return attrs
