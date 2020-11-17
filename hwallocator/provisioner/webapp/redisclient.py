@@ -96,8 +96,10 @@ class RedisClient:
         for allocated_vm in allocation_result['info']:
             hardware_details.append(dict(
                 ip=allocated_vm['net_ifaces'][0]['ip'],
-                user='root',
-                password='root',
+                user=allocated_vm.get('user', 'root'),
+                password=allocated_vm.get('password', 'root'),
+                pem_key_string=allocated_vm.get('pem_key_string', None),
+                keyfile_path=allocated_vm.get('key_file_path', None),
                 resource_manager_ep=resource_manager['endpoint'],
                 vm_id=allocated_vm['name']
             ))
