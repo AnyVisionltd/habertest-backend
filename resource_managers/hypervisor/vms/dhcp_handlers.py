@@ -58,6 +58,13 @@ class DHCPRequestor(object):
             raise Exception("Failed to get ack %s" % reply)
         return reply
 
+    @staticmethod
+    def _server_id_from_offer(dhcp_reply):
+        # Last option is the "end" option it is not a tuple
+        reply_options = dhcp_reply.payload.fields['options'][:-1]
+        options_dict = {option[0] : option[1]  for option in  reply_options}
+        return options_dict['server_id']
+
     def _do_request_lease(self, mac_address, ip=None, timeout_sec=10):
         logging.debug(f"Requesting lease for mac {mac_address} ip {ip} iface {self._net_iface}")
         mac_raw = codecs.decode(mac_address.replace(':', ''), 'hex')
@@ -71,7 +78,7 @@ class DHCPRequestor(object):
             if dhcp_offer is None:
                 raise TimeoutError(f"Timeout. failed to get offer for mac {mac_address} iface: {self._net_iface}")
             ip = dhcp_offer[dhcp.BOOTP].yiaddr
-            server_id = dhcp_offer[dhcp.BOOTP].siaddr
+            server_id = DHCPRequestor._server_id_from_offer(dhcp_offer[dhcp.BOOTP])
             xid_cookie = dhcp_offer[dhcp.BOOTP].xid
         else:
             server_id = "0.0.0.0"
