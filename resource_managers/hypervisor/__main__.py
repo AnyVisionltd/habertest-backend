@@ -122,7 +122,7 @@ if __name__ == '__main__':
     parser.add_argument("--restore-vms", dest='vms_restore', help="Restore VM`s previosly allocated", action="store_true", required=False)
     parser.add_argument("--delete-vms", dest='vms_restore', help="Delete VM`s previosly allocated", action="store_false", required=False)
     parser.add_argument("--provisioner", dest='provisioner', help="Provisioner address", type=str,
-                        required=False, default=os.environ.get('HABERTEST_PROVISIONER'))
+                        required=False, default=os.environ.get('HABERTEST_PROVISONER_ADDRESS'))
 
     parser.set_defaults(vms_restore=True)
 

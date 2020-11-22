@@ -22,7 +22,6 @@ SOL_PORT="${SOL_PORT:-10000}"
 HOSTNAME=$(hostname)
 KERNEL_LIBS=/lib/modules/$(uname -r)
 LIBVIRT_SOCK=/var/run/libvirt/libvirt-sock
-HABERTEST_PROVISIONER="localhost:8080"
 
 python3 ${PROJECT_DIR}/hypervisor/tools/config_hypervisor.py --max-vms ${MAX_VMS}
 
