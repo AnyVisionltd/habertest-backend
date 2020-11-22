@@ -42,12 +42,17 @@ class DHCPRequestor(object):
     def _dhcp_request(self, mac_raw, requested_ip, xid_cookie=0, server_id="0.0.0.0", timeout_sec=10):
         logging.debug(f"Sending dhcp request for {requested_ip} cookie {xid_cookie} server id {server_id} net {self._net_iface}")
         broadcast_flag = scapy.fields.FlagValue(0b1000000000000000, "???????????????B")
+
+        dhcp_options = [("message-type", "request")]
+        if server_id is not None:
+            dhcp_options.append(("server_id", server_id))
+        dhcp_options.extend([("requested_addr", requested_ip), ("param_req_list", 0), "end"])
+
         dhcp_request = l2.Ether(src=self._real_mac, dst="ff:ff:ff:ff:ff:ff") / \
                         inet.IP(src="0.0.0.0", dst="255.255.255.255") / \
                         inet.UDP(sport=68, dport=67) / \
                         dhcp.BOOTP(chaddr=mac_raw, xid=xid_cookie, flags=broadcast_flag) / \
-                        dhcp.DHCP(options=[("message-type", "request"), ("server_id", server_id),
-                                      ("requested_addr", requested_ip), ("param_req_list", 0), "end"])
+                        dhcp.DHCP(options=dhcp_options)
 
         # send request, wait for ack
         dhcp_reply = sendrecv.srp1(dhcp_request, iface=self._net_iface, verbose=self._verbose, timeout=timeout_sec)
@@ -81,7 +86,7 @@ class DHCPRequestor(object):
             server_id = DHCPRequestor._server_id_from_offer(dhcp_offer[dhcp.BOOTP])
             xid_cookie = dhcp_offer[dhcp.BOOTP].xid
         else:
-            server_id = "0.0.0.0"
+            server_id = None
             xid_cookie = 0
         return self._dhcp_request(mac_raw, ip, xid_cookie, server_id, timeout_sec=timeout_sec)
 
