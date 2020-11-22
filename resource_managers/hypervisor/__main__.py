@@ -99,9 +99,9 @@ def _vfio_bind_pci_devices(devices):
             raise Exception("Failed to bind device %s verify", device) from e
 
 
-async def start_daemons(app):
+async def start_daemons(app, provisioner_address):
     app["heartbeats"] = app.loop.create_task(
-        heartbeat.send_heartbeats(app['info'], os.getenv("HABERTEST_PROVISIONER", "localhost:8080")))
+        heartbeat.send_heartbeats(app['info'], provisioner_address))
 
 
 if __name__ == '__main__':
@@ -121,6 +121,9 @@ if __name__ == '__main__':
     parser.add_argument("--port", help="HTTP port of hypervisor server", default=9080, type=int)
     parser.add_argument("--restore-vms", dest='vms_restore', help="Restore VM`s previosly allocated", action="store_true", required=False)
     parser.add_argument("--delete-vms", dest='vms_restore', help="Delete VM`s previosly allocated", action="store_false", required=False)
+    parser.add_argument("--provisioner", dest='provisioner', help="Provisioner address", type=str,
+                        required=False, default=os.environ.get('HABERTEST_PROVISIONER'))
+
     parser.set_defaults(vms_restore=True)
 
     args = parser.parse_args()
@@ -155,7 +158,8 @@ if __name__ == '__main__':
     app = web.Application()
     app["info"] = dict(alias=f'{args.server_name}-hypervisor', rm_type='hypervisor',
                              endpoint=f'{get_ip()}:{args.port}')
-    app.on_startup.append(start_daemons)
+    if args.provisioner is not None:
+        app.on_startup.append(start_daemons, args.provisioner)
 
     rest.HyperVisor(allocator, storage, app)
     web.run_app(app, port=args.port, access_log_format='%a %t "%r" time %Tf sec %s')
