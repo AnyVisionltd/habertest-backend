@@ -120,6 +120,22 @@ class RedisClient:
         conn = await self.asyncconn
         await conn.hdel(key, fields)
 
+    def resource_managers_sync(self):
+        rms_raw = self.conn.hgetall("resource_managers")
+        rms = list()
+        if rms_raw:
+            for k, v in rms_raw.items():
+                rm = json.loads(v)
+                rms.append(rm)
+        return rms
+
+    def allocations_sync(self):
+        redis_allocations_raw = self.conn.hgetall("allocations")
+        redis_allocations = dict()
+        for id, allocation_str in redis_allocations_raw.items():
+            redis_allocations[id.decode()] = json.loads(allocation_str)
+        return redis_allocations
+
 
 REDIS = RedisClient(
     host=os.getenv("REDIS_HOST", "redis"),
