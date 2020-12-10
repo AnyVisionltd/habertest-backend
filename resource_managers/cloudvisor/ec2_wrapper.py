@@ -137,9 +137,10 @@ class EC2Wrapper(object):
                              'Ipv6Ranges': [{'CidrIpv6': '::/0'}]}
         all_traffic_in_security_group = {'IpProtocol': '-1',
                                          'UserIdGroupPairs': [{'VpcId': self.vpc.id, 'GroupId': security_group.id}]}
+        all_traffic_in_vpc = {'IpProtocol': '-1', 'IpRanges': [{'CidrIp': f'{self.vpc.cidr_block}'}]}
 
         all_from_peer = {'IpProtocol': '-1', 'IpRanges': [{'CidrIp': '%s/32' % allocating_ip}]}
-        allowed_rules = [all_traffic_in_security_group, all_from_peer, ssh_any_host_rule]
+        allowed_rules = [all_traffic_in_security_group, all_from_peer, ssh_any_host_rule, all_traffic_in_vpc]
         security_group.authorize_ingress(IpPermissions=allowed_rules)
 
         return security_group
