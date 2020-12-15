@@ -124,11 +124,11 @@ class RedisClient:
 
     def resource_managers_sync(self):
         rms_raw = self.conn.hgetall("resource_managers")
-        rms = list()
+        rms = dict()
         if rms_raw:
             for k, v in rms_raw.items():
                 rm = json.loads(v)
-                rms.append(rm)
+                rms[k] = rm
         return rms
 
     def allocations_sync(self):
