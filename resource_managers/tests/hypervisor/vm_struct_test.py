@@ -1,4 +1,4 @@
-from hypervisor.vms import vm
+from hypervisor.vms import physical_vm as vm
 import pytest
 
 
@@ -20,7 +20,9 @@ async def test_vm_json():
                     'cloud_init_iso' : None,
                     'base_image_size' : None,
                     'allocation_id': None,
-                    'requestor': None}
+                    'requestor': {},
+                     'user': 'root',
+                     'password': 'root'}
 
     machine = vm.VM(name="name", num_cpus=1, memsize=1,
                     net_ifaces=net_ifaces,

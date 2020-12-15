@@ -1,5 +1,6 @@
 import pytest
-from hypervisor.vms import storage, vm_manager, libvirt_wrapper, dhcp_handlers, cloud_init, image_store, vm
+from hypervisor.vms import storage, vm_manager, libvirt_wrapper, dhcp_handlers, cloud_init, image_store
+from hypervisor.vms import physical_vm as vm
 import mock
 
 
