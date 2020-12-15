@@ -8,9 +8,13 @@ ifndef MYIP
 endif
 	@docker run --rm -e REDIS_USER=guest -e REDIS_PASSWORD=pAssw0Rd! -e REDIS_HOST=${MYIP} -e REDIS_PORT=6379 -e REDIS_DB=0 -v ${PWD}:/src -w /src -p 8080:8080 -ti allocate watchmedo auto-restart --recursive -d . -p '*.py' -- python3 -m 'webapp.app' serve
 
-.PHONY: build
-build:
-	@docker build -t=allocate .
+.PHONY: build-provisioner
+build-provisioner:
+	@docker build -t gcr.io/anyvision-training/habertest-provisioner .
+
+.PHONY: push-provisioner
+push-provisioner: build-provisioner
+	@docker push gcr.io/anyvision-training/habertest-provisioner:latest
 
 .PHONY: tests
 tests:
