@@ -1,8 +1,10 @@
-#!/usr/bin/env python3 
-import requests
+#!/usr/bin/env python3
 import argparse
-import functools
 import json
+import sys
+import os
+sys.path.append(os.path.dirname(__file__))
+from common import resource_manager_api as api
 
 
 def _do_create(args):
@@ -19,29 +21,7 @@ def _do_create(args):
     if args.hdd:
         data["disks"].append({"size" : args.hdd, "type" : "hdd", "mount" : "/storage", "fs": "xfs"})
 
-    return requests.post("http://%s/vms" % args.allocator, json=data)
-
-
-def _do_delete(args):
-    return requests.delete("http://%s/vms/%s" % (args.allocator, args.name))
-
-
-def _do_list_images(args):
-    return requests.get("http://%s/images" % (args.allocator))
-
-
-def _do_list_vms(args):
-    return requests.get("http://%s/vms" % (args.allocator))
-
-def _do_update_vm(args, status):
-    return requests.post("http://%s/vms/%s/status" % (args.allocator, args.name), json=status)
-
-def _do_vm_info(args):
-    return requests.get("http://%s/vms/%s" % (args.allocator, args.name))
-
-
-def _do_resources():
-    return requests.get("http://%s/resources" % (args.allocator))
+    return api.create(args.allocator, data=data)
 
 
 if __name__ == "__main__":
@@ -79,13 +59,13 @@ if __name__ == "__main__":
     create = commands.add_parser('resources', help="List free resources (GPU/Network)")
 
     commands = {"create" : _do_create,
-                "delete" : _do_delete,
-                "images" : _do_list_images,
-                "list"   : _do_list_vms,
-                "poweroff" : functools.partial(_do_update_vm, status={"power" : "off"}),
-                "poweron" : functools.partial(_do_update_vm, status={"power" : "on"}),
-                "info" : _do_vm_info,
-                "resources" : _do_resources}
+                "delete" : lambda args: api.delete(args.allocator, args.name),
+                "images" : lambda args: api.list_images(args.allocator),
+                "list"   : lambda args: api.list_vms(args.allocator),
+                "poweroff" : lambda args: api.update_vm(args.allocator, args.name, status={"power" : "off"}),
+                "poweron" : lambda: api.update_vm(args.allocator, args.name, status={"power" : "on"}),
+                "info" : lambda: api.vm_info(args.allocator, args.name),
+                "resources" : lambda: api.resources(args.allocator)}
 
     args = parser.parse_args()
     result = commands[args.command](args)
