@@ -1,4 +1,5 @@
-from hypervisor.vms import libvirt_wrapper, vm
+from hypervisor.vms import libvirt_wrapper
+from hypervisor.vms import physical_vm as vm
 import mock
 from mock import patch
 import libvirt

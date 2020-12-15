@@ -2,8 +2,10 @@ from concurrent.futures._base import CancelledError
 
 import pytest
 from utils import pci
-from hypervisor.vms import storage, vm_manager, libvirt_wrapper, rest, dhcp_handlers, cloud_init, image_store, vm, \
+from hypervisor.vms import storage, vm_manager, libvirt_wrapper, rest, dhcp_handlers, cloud_init, image_store, \
     allocator
+from hypervisor.vms import physical_vm as vm
+
 import mock
 from aiohttp import web
 
@@ -79,7 +81,7 @@ async def test_vm_list(mock_libvirt, mock_image_store, aiohttp_client, loop, moc
                             'base_image_size': 20,
                             'image': '/home/sasha_king.qcow', 'disks': [], 'status': 'on', "sol_port": 1000,
                             'cloud_init_iso': '/tmp/iso_path',
-                            'allocation_id': None, 'requestor': None}]}
+                            'allocation_id': None, 'requestor': None, 'password': 'root', 'user': 'root'}]}
 
 
 async def test_vm_info(mock_libvirt, mock_image_store, aiohttp_client, loop, mock_nbd_provisioner, mock_cloud_init,

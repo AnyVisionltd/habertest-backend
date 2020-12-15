@@ -3,7 +3,7 @@ import socket
 import errno
 
 from hypervisor import NotEnoughResourceException
-from . import vm
+from .physical_vm import VM
 import asyncio
 
 
@@ -91,7 +91,7 @@ class Allocator(object):
 
         self.sol_used_ports.append(sol_port)
 
-        machine = vm.VM(**vm_data)
+        machine = VM(**vm_data)
         self.vms[machine.name] = machine
         logging.info("Restored vm %s", machine)
 
@@ -115,7 +115,7 @@ class Allocator(object):
         for vm_data in vms_data:
             # We dont need pci info, and we dont want to load old stored one .. so just remove it
             vm_data.pop('pci', None)
-            machine = vm.VM(**vm_data)
+            machine = VM(**vm_data)
             await self.vm_manager.destroy_vm(machine)
 
     def _reserve_free_port(self, port, attempts=500):
@@ -217,11 +217,11 @@ class Allocator(object):
             vm_index = vm_index + 1
             vm_name = "%s-vm-%d" % (self.server_name, vm_index)
         try:
-            machine = vm.VM(name=vm_name, num_cpus=num_cpus, memsize=memory_gb,
-                            net_ifaces=networks, sol_port=sol_port,
-                            pcis=gpus, base_image=base_image,
-                            disks=disks, base_image_size=base_image_size, allocation_id=allocation_id,
-                            requestor=requestor)
+            machine = VM(name=vm_name, num_cpus=num_cpus, memsize=memory_gb,
+                                    net_ifaces=networks, sol_port=sol_port,
+                                    pcis=gpus, base_image=base_image,
+                                    disks=disks, base_image_size=base_image_size, allocation_id=allocation_id,
+                                    requestor=requestor)
             self.vms[vm_name] = machine
         except:
             logging.exception(f"caught exception creating machine {vm_name}")
