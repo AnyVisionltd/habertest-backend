@@ -1,0 +1,12 @@
+dependencies:
+- name: heartbeat-server
+  repository: file://../subcharts/heartbeat-server
+  version: 0.1.0
+- name: provisioner
+  repository: file://../subcharts/provisioner
+  version: 0.1.0
+- name: redis
+  repository: https://chart.tls.ai/services
+  version: 10.2.0
+digest: sha256:e41b114951e8cf53cecd1f1c83cd0b818fe50141e4ae5682cfa98f48c3c64e6c
+generated: "2020-11-29T15:29:29.919089429+02:00"

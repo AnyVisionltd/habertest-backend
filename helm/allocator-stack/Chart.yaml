@@ -1,0 +1,4 @@
+apiVersion: v1
+description: Allocator Stack
+name: allocator-stack
+version: 0.0.0

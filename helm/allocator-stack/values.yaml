@@ -1,0 +1,35 @@
+global:
+  pullPolicy: Always
+
+provisioner:
+  ingress:
+    enabled: true
+    annotations:
+      nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
+      nginx.ingress.kubernetes.io/auth-tls-secret: "allocator-stack-ca-secret"
+      nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
+    hosts:
+      - host: provisioner.tls.ai
+        paths:
+        - /
+    tls:
+      - secretName: allocator-stack-ca-secret
+        hosts:
+          - provisioner.tls.ai
+          
+heartbeat-server:
+  ingress:
+    enabled: true
+    annotations:
+      nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
+      nginx.ingress.kubernetes.io/auth-tls-secret: "allocator-stack-ca-secret"
+      nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
+    hosts:
+      - host: heartbeat-server.tls.ai
+        paths:
+        - /
+    tls:
+      - secretName: allocator-stack-ca-secret
+        hosts:
+          - heartbeat-server.tls.ai
+
