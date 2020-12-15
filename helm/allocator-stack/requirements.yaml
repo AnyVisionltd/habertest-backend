@@ -1,0 +1,10 @@
+dependencies:
+  - name: heartbeat-server
+    repository: file://../subcharts/heartbeat-server
+    version: "0.1.0"
+  - name: provisioner
+    repository: file://../subcharts/provisioner
+    version: "0.1.0"
+  - name: redis
+    repository: https://chart.tls.ai/services
+    version: "10.2.0"
