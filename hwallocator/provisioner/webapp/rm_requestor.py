@@ -6,16 +6,14 @@ async def theoretically_fulfill(resource_manager, data):
     rm_ep = resource_manager['endpoint']
     url = f"http://{rm_ep}/fulfill/theoretically"
     try:
-       async with aiohttp.ClientSession() as session:
-           async with session.post(url, data=json.dumps(data)) as resp:
-               result = await resp.json()
-               if resp.status != 200:
-                   raise Exception("cant theoretically fulfill")
-               # TODO: add cant theoretically fulfull possibility..
-               return resource_manager
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, data=json.dumps(data)) as resp:
+                result = await resp.json()
+                if resp.status != 200:
+                    raise Exception(f"cant theoretically fulfill: res: {result}")
+                return resource_manager
     except:
-        raise
-        return None
+        raise ConnectionError(f"Couldnt connect to resource_manager {rm_ep}")
 
 
 async def allocate(rm_ep, data):
