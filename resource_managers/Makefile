@@ -1,7 +1,7 @@
 .PHONY: test-hypervisor
 test-hypervisor:
 	@cd .. && docker build -t unittests -f ./Dockerfile.unittests .
-	@docker run --rm -w /root/habertest_backend/resource_managers unittests python3 -m pytest . -vvv --pdb
+	@docker run --rm -v $$PWD:/root/habertest_backend/resource_managers -w /root/habertest_backend/resource_managers unittests python3 -m pytest tests/hypervisor -vvv
 
 .PHONY: build-hypervisor
 build-hypervisor:
