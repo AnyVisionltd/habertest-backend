@@ -70,14 +70,27 @@ class Fulfiller(object):
         # TODO: placeholder to enable some type of logic
         return random.choice(resource_managers)
 
+    async def remove_unavailable_rms(self, live_rms, all_rms):
+        live = {potential['key'] for potential in live_rms}
+        rms = set(key for key in all_rms.keys())
+        dead = list(rms.difference(live))
+        if dead:
+            log.debug(f"found dead resource_managers: {dead}")
+            await self.redis.delete("resource_managers", dead)
+            log.debug("deleted resource_managers")
+
     async def find_potential_fulfillers(self, allocation_id):
         allocation_request = await self.redis.allocations(allocation_id)
         resource_managers = await self.redis.resource_managers()
         tasks = list()
-        for resource_manager in resource_managers.values():
+        for key, resource_manager in resource_managers.items():
+            resource_manager['key'] = key
             tasks.append(rm_requestor.theoretically_fulfill(resource_manager, allocation_request))
         potentials = await asyncio.gather(*tasks, return_exceptions=True)
-        potentials = [possible_rm for possible_rm in potentials if possible_rm is not None]
+        potentials = [possible_rm for possible_rm in potentials if not isinstance(possible_rm, Exception)]
+
+        await self.remove_unavailable_rms(potentials, resource_managers)
+
         log.debug(f"final potentials: {potentials}")
         return potentials
 
