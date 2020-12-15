@@ -9,7 +9,8 @@ import mock
 import copy
 import munch
 from hypervisor.vms import storage, vm_manager, libvirt_wrapper, dhcp_handlers, cloud_init, \
-    image_store, vm, allocator
+    image_store, allocator
+from hypervisor.vms import physical_vm as vm
 from unittest.mock import call
 
 
