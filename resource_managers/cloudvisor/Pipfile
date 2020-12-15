@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+boto3 = "*"
+aiohttp = "*"
+pytest = "*"
+requests = "*"
+pytest-asyncio = "*"
+ipdb = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "python 3"
