@@ -8,6 +8,7 @@ import uuid
 
 import aiohttp
 import pytest
+import requests
 
 from ..webapp import rm_requestor
 
@@ -22,7 +23,7 @@ async def test_resource_manager_requestor_happy_flow():
     """Set ip:port of RESOURCE_MANAGER_EP"""
     rm = dict(endpoint=RESOURCE_MANAGER)
     data = {"demands": {"host": {}},
-            'requestor': dict(hostname=socket.gethostname(), username=getpass.getuser(), ip=socket.gethostbyname(socket.gethostname()))}
+            'requestor': dict(hostname=socket.gethostname(), username=getpass.getuser(), ip=socket.gethostbyname(socket.gethostname()), external_ip=requests.get("http://ifconfig.me").text)}
     possible = await rm_requestor.theoretically_fulfill(rm, data)
     assert possible
     allocate_result = await rm_requestor.allocate(rm['endpoint'], data)
