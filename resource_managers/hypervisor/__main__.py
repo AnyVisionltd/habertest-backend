@@ -2,7 +2,7 @@ import os
 import logging
 import socket
 
-from utils import net
+from utils import net, ip
 from utils import pci, shell, anylogging, heartbeat
 from hypervisor.vms import rest, cloud_init, storage as libstorage, vm_manager, dhcp_handlers, \
     libvirt_wrapper, allocator, image_store
@@ -12,16 +12,7 @@ import argparse
 import yaml
 
 
-def get_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        s.connect(('10.255.255.255', 1))
-        ip = s.getsockname()[0]
-    except Exception:
-        ip = '127.0.0.1'
-    finally:
-        s.close()
-    return ip
+
 
 
 def _verify_gpu_drivers_not_loaded():
@@ -157,7 +148,7 @@ if __name__ == '__main__':
         loop.run_until_complete(allocator.delete_all_dangling_vms())
     app = web.Application()
     app["info"] = dict(alias=f'{args.server_name}-hypervisor', rm_type='hypervisor',
-                             endpoint=f'{get_ip()}:{args.port}')
+                             endpoint=f'{ip.get_ip()}:{args.port}')
     if args.provisioner is not None:
         app.on_startup.append(start_daemons, args.provisioner)
 
