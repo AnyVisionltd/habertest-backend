@@ -22,7 +22,7 @@ if __name__ == '__main__':
     subnet_ids = ["subnet-0e210e70248adadac"]
     manager = EC2Manager(loop, wrapper, subnet_ids)
     machine = VM(base_image='ami-0e7c10ea30d385335',
-                 client_external_ip=requests.get("http://ifconfig.me").text,
+                 client_external_ip=requests.get("http://checkip.amazonaws.com/").text.strip(),
                  instance_type='g4dn.2xlarge',
                  allocation_id=str(uuid.uuid4()),
                  requestor=dict(hostname=socket.gethostname(), username=getpass.getuser(),
