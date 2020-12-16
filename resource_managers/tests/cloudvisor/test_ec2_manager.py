@@ -20,7 +20,7 @@ async def test_basic_flow():
                           allocation_id=str(uuid.uuid4()),
                           requestor=dict(hostname=socket.gethostname(), username=getpass.getuser(),
                                             ip=socket.gethostbyname(socket.gethostname()),
-                                            external_ip=requests.get("http://ifconfig.me").text))
+                                            external_ip=requests.get("http://checkip.amazonaws.com/").text.strip()))
     instance = await manager.allocate_instance(machine)
     actives = await manager.list_active_vms()
     description = next(iter(await manager.describe_vms(instance.instance_id)))

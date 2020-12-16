@@ -14,10 +14,10 @@ def test_happy_flow():
     res = requests.get(f'{RM_EP}/vms')
     assert res.status_code == 200
     machine_reqs = {"base_image": 'ami-0e7c10ea30d385335', "instance_type": 'g4dn.2xlarge',
-                    "client_external_ip": requests.get("http://ifconfig.me").text,
+                    "client_external_ip": requests.get("http://checkip.amazonaws.com/").text.strip(),
                     "requestor": dict(hostname=socket.gethostname(), username=getpass.getuser(),
                                             ip=socket.gethostbyname(socket.gethostname()),
-                                            external_ip=requests.get("http://ifconfig.me").text)}
+                                            external_ip=requests.get("http://checkip.amazonaws.com/").text.strip())}
     create_res = requests.post(f'{RM_EP}/vms', json=machine_reqs)
     assert create_res.status_code == 200
     instance_id = create_res.json()['machine']['instance_id']
@@ -32,7 +32,7 @@ def test_happy_flow():
     fulfill_data = {'demands': {'host': {}},
                     'allocation_id': str(uuid.uuid4()),
                     'requestor': dict(hostname=socket.gethostname(), username=getpass.getuser(),
-                                      ip=socket.gethostbyname(socket.gethostname()), external_ip=requests.get("http://ifconfig.me").text)
+                                      ip=socket.gethostbyname(socket.gethostname()), external_ip=requests.get("http://checkip.amazonaws.com/").text.strip())
                     }
 
     check_fulfill_res = requests.post(f'{RM_EP}/fulfill/theoretically',
