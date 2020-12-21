@@ -176,9 +176,12 @@ class EC2Wrapper(object):
                    'AssociatePublicIpAddress': True
                    }
 
+        image_version_tag = vm.base_image
+        image = self.find_image_by_version_tag(image_version_tag)
+
         start = time.time()
         instance = self.boto_ec2.create_instances(
-            ImageId=vm.base_image,
+            ImageId=image.id,
             MinCount=1, MaxCount=1,
             KeyName=key_name,
             InstanceType=vm.instance_type,
