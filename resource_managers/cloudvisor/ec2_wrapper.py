@@ -68,17 +68,11 @@ class EC2Wrapper(object):
         tags = EC2Wrapper._tags_dict(instance)
         return tags.get('purpose') == 'automation'
 
-    def find_image_by_label(self, label):
-        images = [
-            image for image in self.ec2.images.filter(
-                Owners=['self'],
-                Filters=[{'Name': 'tag:image', 'Values': [label]}, {'Name': 'tag:purpose', 'Values': ["automation"]}])
-        ]
-        if not len(images):
-            return None
-        if len(images) > 1:
-            raise Exception(f"More than one image found {images}")
-        return images
+    def find_image_by_version_tag(self, version_tag):
+        images = list(
+            self.images(self.dict_to_filter({"tag:infra_version": version_tag})).all())
+        assert len(images) == 1, f"{images} images match version {version_tag}, check base_image_tag field of request"
+        return images[0]
 
     @staticmethod
     def load_key_pair(ec2, keyname):
@@ -254,6 +248,9 @@ class EC2Wrapper(object):
         filters = self.dict_to_filter(
             {'instance-state-name': ['pending', 'running', 'stopping', 'stopped']})
         return instances.filter(Filters=filters)
+
+    def images(self, filters=[]):
+        return self.boto_ec2.images.filter(Filters=self._automation_filters()).filter(Filters=filters)
 
     def describe(self, instance_ids):
         instance_ids = [instance_ids] if type(instance_ids) is not list else instance_ids
