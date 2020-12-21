@@ -70,7 +70,7 @@ class CloudVisor(object):
         client_external_ip = request['requestor']['external_ip']
         allocation_id = request.get('allocation_id', str(uuid.uuid4()))
         for host, reqs in request['demands'].items():
-            base_image = reqs.pop("base_image", 'ami-0d53b078caae15158')
+            base_image = reqs.pop("base_image", 'automation_infra_1.0')
             instance_type = reqs.pop("instance_type", 'g4dn.2xlarge')
             instance = VM(client_external_ip=client_external_ip, base_image=base_image,
                           instance_type=instance_type, allocation_id=allocation_id,
