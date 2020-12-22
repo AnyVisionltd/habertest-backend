@@ -1,5 +1,5 @@
-.PHONY: run
-run: build ## runs the application
+.PHONY: run-heartbeat
+run-heartbeat: build-heartbeat ## runs the application
 ifndef MYIP
 	$(error MYIP is not set. Please set this to your machine IP)
 endif
