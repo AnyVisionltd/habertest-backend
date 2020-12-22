@@ -1,8 +1,8 @@
 .PHONY: help
 help: _help
 
-.PHONY: run
-run: build ## runs the application
+.PHONY: run-provisioner
+run-provisioner: build-provisioner ## runs the application
 ifndef MYIP
 	$(error MYIP is not set. Please set this to your machine IP)
 endif
