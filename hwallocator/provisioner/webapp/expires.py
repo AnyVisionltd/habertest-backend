@@ -43,25 +43,25 @@ async def expire_allocations(redis):
                         log.debug("allocation doesnt have rm_endpoint.. removing")
                         await redis.delete("allocations", allocation_id)
                         continue
+                    if allocation["expiration"] < time.time() - 15 * 60:
+                        await redis.delete("allocations", allocation_id)
+                        continue
                     try:
                         result = await rm_requestor.check_status(allocation['allocation_id'], allocation['rm_endpoint'])
                     except aiohttp.client_exceptions.ClientConnectorError as e:
-                        log.debug("couldnt connect to rm_endpoint to get status of machine.. removing")
-                        await redis.delete("allocations", allocation_id)
+                        log.debug("couldnt connect to rm_endpoint to get status of machine, updating status to unknown")
+                        await redis.update_status(allocation_id, status="unknown",
+                                                  message="Currently unable to check status")
                         continue
                     except:
-                        log.exception(f"exception checking status of allocation_id {allocation}")
+                        log.exception(f"exception checking status of allocation_id {allocation}.. updating status to unknown")
+                        await redis.update_status(allocation_id, status="unknown",
+                                                  message="Currently unable to check status")
                         continue
                     log.debug(f"updated status: {result}")
                     if result['info']:
-                        log.debug(f"dangling resources, cleaning")
-                        rm_ep = allocation['rm_endpoint']
-                        for vm in result['info']:
-                            vm_name = vm['name']
-                            log.debug(f"should deallcate: {vm_name} on ep: {rm_ep}")
-                            await try_deallocate(rm_ep, vm_name)
-                            await redis.delete("allocations", allocation_id)
-                            log.debug("deallocated successfully!")
+                        await redis.save_fulfilled_request(allocation_id, dict(endpoint=allocation['rm_endpoint']), result)
+                        continue
 
                 if allocation["expiration"] <= time.time():
                     log.debug(f"found expired {allocation_id} with status {allocation['status']}")
@@ -71,7 +71,8 @@ async def expire_allocations(redis):
                         deallocate_tasks[allocation_id] = asyncio.ensure_future(deallocate(allocation))
                         await conn.hset("allocations", allocation["allocation_id"], json.dumps(allocation))
                     else:
-                        log.warning(f"found IMPROPER expired {allocation['status']} allocation {allocation_id}, removing")
+                        log.warning(
+                            f"found IMPROPER expired {allocation['status']} allocation {allocation_id}, removing")
                         await redis.delete("allocations", allocation_id)
                 else:
                     log.debug(f"job {allocation['allocation_id']} ttl: {allocation['expiration'] - int(time.time())}")
