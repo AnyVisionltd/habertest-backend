@@ -41,10 +41,16 @@ test-cloudvisor: build-cloudvisor run-cloudvisor
 	@docker run --rm -v ${HOME}/.ssh:/root/.ssh -v ${HOME}/.aws:/root/.aws -v ${PWD}:/root/resource_managers -w /root/resource_managers -e HABERTEST_PROVISIONER_ADDRESS=${HABERTEST_PROVISIONER_ADDRESS} -e VPC_ID=${VPC_ID} -e KEY_PAIR_ID=${KEY_PAIR_ID} -e SUBNET_IDS=${SUBNET_IDS} --net host --name cloudvisor_tests -it cloudvisor:latest python -m pytest tests/cloudvisor --log-cli-level info -s --pdb
 	@docker stop cloudvisor
 
+.PHONY: run-cloudvisor-daemon
+run-cloudvisor-daemon: build-cloudvisor
+	@docker stop cloudvisor || true
+	@docker run --rm -d -v ${HOME}/.ssh:/root/.ssh -v ${HOME}/.aws:/root/.aws -v ${PWD}:/root/resource_managers -w /root/resource_managers -e HABERTEST_PROVISIONER_ADDRESS=${HABERTEST_PROVISIONER_ADDRESS} -e VPC_ID=${VPC_ID} -e KEY_PAIR_ID=${KEY_PAIR_ID} -e SUBNET_IDS=${SUBNET_IDS} --net host --name cloudvisor cloudvisor:latest python -m cloudvisor --provisioner ${HABERTEST_PROVISIONER_ADDRESS}
+
 .PHONY: run-cloudvisor
 run-cloudvisor: build-cloudvisor
 	@docker stop cloudvisor || true
-	@docker run --rm -d -v ${HOME}/.ssh:/root/.ssh -v ${HOME}/.aws:/root/.aws -v ${PWD}:/root/resource_managers -w /root/resource_managers -e HABERTEST_PROVISIONER_ADDRESS=${HABERTEST_PROVISIONER_ADDRESS} -e VPC_ID=${VPC_ID} -e KEY_PAIR_ID=${KEY_PAIR_ID} -e SUBNET_IDS=${SUBNET_IDS} --net host --name cloudvisor cloudvisor:latest python -m cloudvisor --provisioner ${HABERTEST_PROVISIONER_ADDRESS}
+	@docker run --rm -v ${HOME}/.ssh:/root/.ssh -v ${HOME}/.aws:/root/.aws -v ${PWD}:/root/resource_managers -w /root/resource_managers -e HABERTEST_PROVISIONER_ADDRESS=${HABERTEST_PROVISIONER_ADDRESS} -e VPC_ID=${VPC_ID} -e KEY_PAIR_ID=${KEY_PAIR_ID} -e SUBNET_IDS=${SUBNET_IDS} --net host --name cloudvisor cloudvisor:latest python -m cloudvisor --provisioner ${HABERTEST_PROVISIONER_ADDRESS}
+
 
 .PHONY: tests
 tests: test-hypervisor test-cloudvisor
