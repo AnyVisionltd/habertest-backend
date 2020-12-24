@@ -54,3 +54,7 @@ class VM(vm_base.VM):
     def __repr__(self):
         data = self.json
         return str(data)
+
+    @property
+    def long_lasting(self, ):
+        return self.tags.get("requestor:long_lasting", False)
