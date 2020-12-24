@@ -7,7 +7,7 @@ async def theoretically_fulfill(resource_manager, data):
     url = f"http://{rm_ep}/fulfill/theoretically"
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, data=json.dumps(data)) as resp:
+            async with session.post(url, data=json.dumps(data), timeout=5) as resp:
                 result = await resp.json()
                 if resp.status != 200:
                     raise Exception(f"cant theoretically fulfill: res: {result}")
