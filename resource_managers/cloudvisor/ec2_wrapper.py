@@ -265,6 +265,7 @@ class EC2Wrapper(object):
 
     def delete_dangling_security_groups(self):
         for security_group in self._automation_security_groups():
+            security_group.reload()
             if not security_group.get_available_subresources():
                 try:
                     security_group.delete()
