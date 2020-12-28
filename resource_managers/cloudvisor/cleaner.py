@@ -13,7 +13,7 @@ class Cleaner(object):
 
     async def active_allocation_ids(self):
         uri = "http://%s/api/jobs" % self.provisioner_ep
-        logging.info(f"cleaner: getting allocations from {uri}")
+        logging.info(f"getting allocations from {uri}")
         async with aiohttp.ClientSession() as client:
             async with client.get(
                     uri) as resp:
@@ -50,9 +50,13 @@ class Cleaner(object):
                 tasks.append(self.ec2_manager.destroy_instance(vm.name))
             else:
                 logging.info("instance is an active allocation")
-        logging.info("awaiting gather of destory tasks...")
-        await asyncio.gather(*tasks)
-        logging.info("done cleaning dangling vms")
+
+        if tasks:
+            logging.info("awaiting gather of destory tasks...")
+            await asyncio.gather(*tasks)
+            logging.info("done cleaning dangling vms")
+        else:
+            logging.info("no dangling vms :)")
 
     async def clean_dangling_security_groups(self):
         logging.info("cleaning dangling security groups")
