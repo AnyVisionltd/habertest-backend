@@ -10,10 +10,6 @@ build-hypervisor:
 
 .PHONY: run-hypervisor
 run-hypervisor:
-	@echo "TODO: cd hypervisor && ./deployment/hypervisor/run_hypervisor.sh"
-
-.PHONY: run-hypervisor
-run-hypervisor:
 	@./deployment/hypervisor/run_hypervisor.sh
 
 VPC_ID ?= vpc-0e1b3b5e01c93e71e
@@ -58,3 +54,13 @@ tests: test-hypervisor test-cloudvisor
 .PHONY: ipdb_ec2
 ipdb_ec2:
 	@PYTHONPATH=. python cloudvisor/ec2_wrapper_ipdb.py
+
+.PHONY: config-hypervisor
+config-hypervisor:
+	@mv hypervisor/config/hypervisor.yaml hypervisor/config/hypervisor.yaml_bak || true
+	@python3 hypervisor/tools/config_hypervisor.py -m $(vms)
+	@cat hypervisor/config/hypervisor.yaml
+
+.PHONY: hypervisor-logs
+hypervisor-logs:
+	@journalctl -f -t HYPERVISOR
