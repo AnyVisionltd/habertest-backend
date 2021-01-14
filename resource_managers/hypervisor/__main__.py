@@ -90,9 +90,9 @@ def _vfio_bind_pci_devices(devices):
             raise Exception("Failed to bind device %s verify", device) from e
 
 
-async def start_daemons(app, provisioner_address):
+async def start_daemons(app):
     app["heartbeats"] = app.loop.create_task(
-        heartbeat.send_heartbeats(app['info'], provisioner_address))
+        heartbeat.send_heartbeats(app['info'], app["provisioner_address"]))
 
 
 if __name__ == '__main__':
@@ -150,7 +150,8 @@ if __name__ == '__main__':
     app["info"] = dict(alias=f'{args.server_name}-hypervisor', rm_type='hypervisor',
                              endpoint=f'{ip.get_ip()}:{args.port}')
     if args.provisioner is not None:
-        app.on_startup.append(start_daemons, args.provisioner)
+        app["provisioner_address"] = args.provisioner
+        app.on_startup.append(start_daemons)
 
     rest.HyperVisor(allocator, storage, app)
     web.run_app(app, port=args.port, access_log_format='%a %t "%r" time %Tf sec %s')
