@@ -70,7 +70,9 @@ if __name__ == '__main__':
     hypervisor_config['pcis'] = []
     for businfo in find_gpu_bus_addr().decode("utf-8").splitlines():
         hypervisor_config['pcis'].append({'pci': businfo})
-    
+    if not hypervisor_config['pcis']:
+        del hypervisor_config['pcis']
+
     # generate macs
     hypervisor_config['macs'] = []
     for i in range(0, args.max_vms):
