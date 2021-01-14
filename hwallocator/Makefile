@@ -3,9 +3,9 @@ MODULES=heartbeat_server provisioner
 .PHONY: help
 help: _help
 
-.PHONY: run-hwallocator
-run: ## runs the hwallocator (provisioner and hb server) in docker-compose
-	@docker-compose up
+.PHONY: run-provisioner
+run-provisioner: ## runs the hwallocator (provisioner and hb server) in docker-compose
+	@docker-compose up -d
 
 .PHONY: tests
 tests: ## run all modules tests sequentially
