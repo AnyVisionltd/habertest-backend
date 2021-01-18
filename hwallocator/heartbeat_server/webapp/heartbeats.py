@@ -35,7 +35,7 @@ async def update_expires(request, allocation_id):
     conn = await request.app["redis"].asyncconn
     value = await conn.hget("allocations", allocation_id)
     d_value = json.loads(value)
-    d_value["expiration"] = time.time() + 20
+    d_value["expiration"] = time.time() + 60
     if d_value['status'] != 'success':
         raise Exception(f"received hb for allocation which has status: {d_value['status']}")
     await conn.hset("allocations", allocation_id, json.dumps(d_value))
