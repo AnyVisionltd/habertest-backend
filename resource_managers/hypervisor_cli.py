@@ -63,10 +63,11 @@ if __name__ == "__main__":
                 "images" : lambda args: api.list_images(args.allocator),
                 "list"   : lambda args: api.list_vms(args.allocator),
                 "poweroff" : lambda args: api.update_vm(args.allocator, args.name, status={"power" : "off"}),
-                "poweron" : lambda: api.update_vm(args.allocator, args.name, status={"power" : "on"}),
+                "poweron" : lambda args: api.update_vm(args.allocator, args.name, status={"power" : "on"}),
                 "info" : lambda: api.vm_info(args.allocator, args.name),
                 "resources" : lambda: api.resources(args.allocator)}
 
     args = parser.parse_args()
     result = commands[args.command](args)
+    result.raise_for_status()
     print(json.dumps(result.json()))
