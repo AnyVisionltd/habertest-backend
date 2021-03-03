@@ -59,7 +59,7 @@ async def expire_allocations(redis):
                                                   message="Currently unable to check status")
                         continue
                     log.debug(f"updated status: {result}")
-                    if result['info']:
+                    if result:
                         await redis.save_fulfilled_request(allocation_id, dict(endpoint=allocation['rm_endpoint']), result)
                         continue
 
