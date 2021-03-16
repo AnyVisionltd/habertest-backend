@@ -19,7 +19,8 @@ import logging
 def _configure_logging(log_level):
     logging.getLogger('boto3').setLevel(logging.WARNING)
     logging.getLogger('botocore').setLevel(logging.WARNING)
-    anylogging.configure_logging(root_level=log_level, console_level=log_level)
+    anylogging.configure_logging(root_level=log_level, console_level=log_level, file_level=log_level,
+                                 filename='/var/log/cloudvisor.log')
 
 
 def resolve_ip():
