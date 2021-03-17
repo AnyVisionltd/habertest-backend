@@ -1,6 +1,6 @@
 import re
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import logging
 
@@ -119,7 +119,7 @@ class EC2Wrapper(object):
         allocating_ip = vm.client_external_ip
         sg_name = f"automation_allocation_{vm.allocation_id}"
         tags = EC2Wrapper._default_tags(vm) + [{'Key': 'Name', 'Value': sg_name}] + \
-               [{'Key': 'creation', 'Value': datetime.now()}]
+               [{'Key': 'creation', 'Value': str(time.time())}]
 
         security_group = self.boto_ec2.create_security_group(Description=vm.allocation_id,
                                                              GroupName=vm.allocation_id,
@@ -266,7 +266,7 @@ class EC2Wrapper(object):
 
     def delete_dangling_security_groups(self):
         for security_group in self._automation_security_groups():
-            if (datetime.now() - self._tags_dict(security_group).get('creation', datetime.min)) < timedelta(minutes=5):
+            if (time.time() - float(self._tags_dict(security_group).get('creation', 0))) < 5*60:
                 continue
             security_group.reload()
             if not security_group.get_available_subresources():
