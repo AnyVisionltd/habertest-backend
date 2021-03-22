@@ -180,7 +180,6 @@ class EC2Wrapper(object):
         image_version_tag = vm.base_image
         image = self.find_image_by_version_tag(image_version_tag)
 
-        start = time.time()
         instance = self.boto_ec2.create_instances(
             ImageId=image.id,
             MinCount=1, MaxCount=1,
@@ -190,17 +189,17 @@ class EC2Wrapper(object):
             TagSpecifications=[{"ResourceType": "instance",
                                 "Tags": self._instance_tags(vm)}]
         )[0]
-        logging.info(f"{instance.id}: create_instance time: {time.time() - start}")
+        return instance
+
+    @staticmethod
+    def await_running(instance):
+        start = time.time()
         instance.wait_until_exists()
         logging.info(f"{instance.id}: exists elapsed time: {time.time() - start}s")
         instance.wait_until_running()
         logging.info(f"{instance.id}: until running elapsed: {time.time() - start}s")
         instance.reload()
         logging.info(f"{instance.id}: after reload elapsed: {time.time() - start}s")
-        vm.instance_id = instance.id
-        instance.num_cpus = instance.cpu_options['CoreCount'] * instance.cpu_options['ThreadsPerCore']
-        vm.net_ifaces[0]['ip'] = instance.public_ip_address
-        logging.info(f"successfully allocated vm: {vm.json}")
         return instance
 
     def destroy(self, instance_ids):
