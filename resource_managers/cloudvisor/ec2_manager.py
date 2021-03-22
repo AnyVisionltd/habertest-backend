@@ -24,9 +24,14 @@ class EC2Manager(object):
     async def allocate_instance(self, vm):
         subnet_id = next(self.subnet_ids)
         vm.net_ifaces = [{"subnet" : subnet_id}]
-        instance = await self.loop.run_in_executor(self.thread_pool,
-                                                   lambda: self.ec2_wrapper.allocate(vm))
-        vm.name = instance.instance_id
+        created_instance = await self.loop.run_in_executor(self.thread_pool,
+                                                           lambda: self.ec2_wrapper.allocate(vm))
+        running_instance = await self.loop.run_in_executor(self.thread_pool,
+                                                           lambda: self.ec2_wrapper.await_running(created_instance))
+        vm.instance_id = running_instance.id
+        running_instance.num_cpus = running_instance.cpu_options['CoreCount'] * running_instance.cpu_options['ThreadsPerCore']
+        vm.net_ifaces[0]['ip'] = running_instance.public_ip_address
+        vm.name = running_instance.instance_id
         vm.user = 'ubuntu'
         vm.pem_key_string = self.ec2_wrapper.machine_key_info['pem']
         return vm
