@@ -9,7 +9,7 @@ class EC2Manager(object):
     def __init__(self, loop, ec2_api, subnet_ids):
         self.loop = loop
         self.ec2_wrapper = ec2_api
-        self.thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=10)
+        self.thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=50)
         self.subnet_ids = itertools.cycle(subnet_ids)
 
     @classmethod
