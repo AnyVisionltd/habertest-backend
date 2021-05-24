@@ -148,7 +148,7 @@ class EC2Wrapper(object):
         return next(iter(self.boto_ec2.security_groups.filter(Filters=filters)))
 
     def _get_or_create_security_group(self, vm):
-        with self.lock:
+        with self._get_or_create_lock:
             try:
                 return self._find_security_group(vm.allocation_id)
             except StopIteration:
