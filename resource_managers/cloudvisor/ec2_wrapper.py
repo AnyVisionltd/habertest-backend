@@ -1,4 +1,5 @@
 import re
+import threading
 import time
 from datetime import datetime
 
@@ -17,6 +18,7 @@ class EC2Wrapper(object):
         self.vpc = vpc
         self.boto_ec2 = boto_ec2
         self.machine_key_info = machine_key_info
+        self._get_or_create_lock = threading.Lock()
 
     @staticmethod
     def main_cloudvisor(id):
@@ -146,11 +148,12 @@ class EC2Wrapper(object):
         return next(iter(self.boto_ec2.security_groups.filter(Filters=filters)))
 
     def _get_or_create_security_group(self, vm):
-        try:
-            return self._find_security_group(vm.allocation_id)
-        except StopIteration:
-            logging.info(f"Did not find security group for {vm.allocation_id} creating")
-            return self._create_security_group(vm)
+        with self.lock:
+            try:
+                return self._find_security_group(vm.allocation_id)
+            except StopIteration:
+                logging.info(f"Did not find security group for {vm.allocation_id} creating")
+                return self._create_security_group(vm)
 
     def _delete_security_group(self, allocation_id):
         # Note that this will not work for more than single VM
