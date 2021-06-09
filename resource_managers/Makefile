@@ -47,6 +47,15 @@ run-cloudvisor: build-cloudvisor
 	@docker stop cloudvisor || true
 	@docker run --rm -v ${HOME}/.ssh:/root/.ssh -v ${HOME}/.aws:/root/.aws -v ${PWD}:/root/resource_managers -w /root/resource_managers -e HABERTEST_PROVISIONER_ADDRESS=${HABERTEST_PROVISIONER_ADDRESS} -e VPC_ID=${VPC_ID} -e KEY_PAIR_ID=${KEY_PAIR_ID} -e SUBNET_IDS=${SUBNET_IDS} --net host --name cloudvisor cloudvisor:latest python -m cloudvisor --provisioner ${HABERTEST_PROVISIONER_ADDRESS}
 
+.PHONY: build-hardvisor
+build-hardvisor:
+	@docker build -t hardvisor -f Dockerfile.hardvisor .
+	@docker tag hardvisor gcr.io/anyvision-training/habertest-hardvisor
+
+.PHONY: run-hardvisor
+run-hardvisor: build-hardvisor
+	@docker-compose -f hardvisor-compose.yaml up
+
 
 .PHONY: tests
 tests: test-hypervisor test-cloudvisor
