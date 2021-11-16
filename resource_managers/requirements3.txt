@@ -1,4 +1,4 @@
-Pygments==2.7.2
+Pygments==2.7.4
 SecretStorage==2.3.1
 aiohttp==3.7.3
 asn1crypto==0.24.0
