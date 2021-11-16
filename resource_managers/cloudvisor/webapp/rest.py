@@ -29,11 +29,12 @@ class CloudVisor(object):
     async def handle_allocate_vm(self, request):
         data = await request.json()
         base_image = data.get('base_image')
-        instance_type = data.get('instance_type')
+        instance_type = data.get('instance_type', None)
+        num_gpus = data.get('gpus', '1')
         allocation_id = data.get("allocation_id", str(uuid.uuid4()))
         logging.info(f"allocationid: {allocation_id}")
         client_external_ip = data.get("client_external_ip")
-        machine = VM(base_image=base_image, instance_type=instance_type,
+        machine = VM(base_image=base_image, num_gpus=num_gpus, instance_type=instance_type,
                      client_external_ip=client_external_ip, allocation_id=allocation_id,
                      requestor=data.get('requestor', {}))
         machine = await self.ec2_manager.allocate_instance(machine)
@@ -71,8 +72,9 @@ class CloudVisor(object):
         allocation_id = request.get('allocation_id', str(uuid.uuid4()))
         for host, reqs in request['demands'].items():
             base_image = reqs.pop("base_image", 'automation_infra_1.0')
-            instance_type = reqs.pop("instance_type", 'g4dn.2xlarge')
-            instance = VM(client_external_ip=client_external_ip, base_image=base_image,
+            instance_type = reqs.pop("instance_type", None)
+            num_gpus = reqs.pop("gpus", '1')
+            instance = VM(client_external_ip=client_external_ip, num_gpus=num_gpus, base_image=base_image,
                           instance_type=instance_type, allocation_id=allocation_id,
                           requestor=request['requestor'])
             vm_requests.append(instance)

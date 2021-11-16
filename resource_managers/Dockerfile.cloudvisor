@@ -9,7 +9,10 @@ RUN apt-get update && apt-get install -y \
 
 RUN ln -sf -T /usr/bin/python3.8 /usr/bin/python
 
-RUN python -m pip install boto3 aiohttp requests ipdb pytest pytest-asyncio watchdog pdbpp
+COPY  ./requirements3.txt /tmp/requirements3.txt
+RUN python -m pip install -r /tmp/requirements3.txt \
+    && rm /tmp/requirements3.txt
+
 
 COPY . /root/resource_managers
 WORKDIR /root/resource_managers

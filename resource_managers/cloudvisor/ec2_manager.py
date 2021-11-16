@@ -1,8 +1,15 @@
 import asyncio
 import concurrent
 import itertools
+import logging
 
 from cloudvisor.cloud_vm import VM
+from botocore.exceptions import ClientError
+
+INSTANCE_TYPES_BY_GPU_COUNT = {'1': ['g3.4xlarge', 'g4dn.2xlarge', 'g4dn.4xlarge'],
+                               '2': ['g3.8xlarge'],
+                               '4': ['g4dn.12xlarge', 'g3.16xlarge'],
+                               '8': ['p2.8xlarge', 'p3.16xlarge' ]}
 
 
 class EC2Manager(object):
@@ -23,13 +30,32 @@ class EC2Manager(object):
 
     async def allocate_instance(self, vm):
         subnet_id = next(self.subnet_ids)
-        vm.net_ifaces = [{"subnet" : subnet_id}]
-        created_instance = await self.loop.run_in_executor(self.thread_pool,
-                                                           lambda: self.ec2_wrapper.allocate(vm))
+        vm.net_ifaces = [{"subnet": subnet_id}]
+
+        if vm.instance_type:
+            instance_types = [vm.instance_type]
+        else:
+            try:
+                instance_types = INSTANCE_TYPES_BY_GPU_COUNT[vm.num_gpus]
+            except KeyError:
+                raise KeyError(f"Instance type with {vm.num_gpus} is not defined.")
+
+        for idx, type in enumerate(instance_types):
+            try:
+                vm.instance_type = type
+                created_instance = await self.loop.run_in_executor(self.thread_pool,
+                                                                   lambda: self.ec2_wrapper.allocate(vm))
+                break
+            except ClientError as err:
+                if idx == len(instance_types) - 1:
+                    raise err
+
         running_instance = await self.loop.run_in_executor(self.thread_pool,
                                                            lambda: self.ec2_wrapper.await_running(created_instance))
+
         vm.instance_id = running_instance.id
-        running_instance.num_cpus = running_instance.cpu_options['CoreCount'] * running_instance.cpu_options['ThreadsPerCore']
+        running_instance.num_cpus = running_instance.cpu_options['CoreCount'] * running_instance.cpu_options[
+            'ThreadsPerCore']
         vm.net_ifaces[0]['ip'] = running_instance.public_ip_address
         vm.name = running_instance.instance_id
         vm.user = 'ubuntu'
