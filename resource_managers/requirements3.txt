@@ -16,7 +16,7 @@ idna==2.6
 iniconfig==1.1.1
 ipdb==0.13.4
 ipython-genutils==0.2.0
-ipython==7.19.0
+ipython==7.31.1
 jedi==0.17.2
 jmespath==0.10.0
 keyring==10.6.0
