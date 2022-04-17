@@ -34,6 +34,8 @@ class HardVisor(object):
                 machine['cpu'] = reqs.pop("cpu")
             if "type" in reqs:
                 machine['type'] = reqs.pop("type")
+
+            machine['arch'] = reqs.pop("arch", 'x86_64')
             machine_reqs.append(machine)
         return machine_reqs
 

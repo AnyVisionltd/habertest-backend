@@ -17,14 +17,15 @@ class HardwareManager:
         return await self.redis.machines()
 
     async def fulfills_reqs(self, machine, reqs):
-        # todo: for now, placeholder
-        return True
+        if reqs['arch'] == machine['arch']:
+            return True
+        return False
 
     async def matching_machines(self, reqs):
         machines = await self.redis.machines()
         matching_machines = list()
         for machine in machines.values():
-            if self.fulfills_reqs(machine, reqs):
+            if await self.fulfills_reqs(machine, reqs):
                 matching_machines.append(machine)
         return matching_machines
 
