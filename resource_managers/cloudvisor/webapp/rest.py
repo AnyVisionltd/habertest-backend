@@ -74,10 +74,11 @@ class CloudVisor(object):
             base_image = reqs.pop("base_image", 'automation_infra_1.0')
             instance_type = reqs.pop("instance_type", None)
             num_gpus = reqs.pop("gpus", '1')
+            arch = reqs.pop("arch", "x86_64")
             instance = VM(client_external_ip=client_external_ip, num_gpus=num_gpus, base_image=base_image,
                           instance_type=instance_type, allocation_id=allocation_id,
-                          requestor=request['requestor'])
-            vm_requests.append(instance)
+                          requestor=request['requestor'], arch=arch)
+            vm_requests[host] = instance
         return vm_requests
 
     async def check_fulfill(self, request):

@@ -6,6 +6,8 @@ from datetime import datetime
 import logging
 
 from botocore.exceptions import ClientError
+from common.instance_types import INSTANCE_TYPES_BY_ARCH
+
 
 
 class EC2Wrapper(object):
@@ -162,8 +164,9 @@ class EC2Wrapper(object):
         sg.delete()
 
     def check_allocate(self, vm):
-        '''Placeholder'''
-        return True
+        if vm.arch in INSTANCE_TYPES_BY_ARCH.keys():
+            return True
+        return False
 
     def allocate(self, vm):
         logging.info(f"allocating vm: {vm.json}")

@@ -6,9 +6,7 @@ import logging
 from cloudvisor.cloud_vm import VM
 from botocore.exceptions import ClientError
 
-INSTANCE_TYPES_BY_GPU_COUNT = {'1': ['g4dn.2xlarge', 'g4dn.4xlarge'],
-                               '4': ['g4dn.12xlarge'],
-                               '8': ['p3.16xlarge', 'g4dn.metal']}
+from common.instance_types import INSTANCE_TYPES_BY_ARCH, INSTANCE_TYPES_BY_GPU_COUNT
 
 
 class EC2Manager(object):
@@ -35,9 +33,9 @@ class EC2Manager(object):
             instance_types = [vm.instance_type]
         else:
             try:
-                instance_types = INSTANCE_TYPES_BY_GPU_COUNT[vm.num_gpus]
+                instance_types = list(set(INSTANCE_TYPES_BY_ARCH[vm.arch]).intersection(INSTANCE_TYPES_BY_GPU_COUNT[vm.num_gpus]))
             except KeyError:
-                raise KeyError(f"Instance type with {vm.num_gpus} is not defined.")
+                raise KeyError(f"Instance type with {vm.num_gpus} & {vm.arch} is not defined.")
 
         for idx, type in enumerate(instance_types):
             try:
