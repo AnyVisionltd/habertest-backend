@@ -36,7 +36,7 @@ class HardwareManager:
         return None
 
     async def check_allocate(self, requirements):
-        return bool(await self.matching_machines(requirements))
+        return {requirements['host']: bool(await self.matching_machines(requirements))}
 
     async def allocate(self, requirements):
         async with self.allocate_lock:
