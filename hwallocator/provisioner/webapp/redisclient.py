@@ -99,7 +99,7 @@ class RedisClient:
                 user=allocated_vm.get('user', None),
                 password=allocated_vm.get('password', None),
                 pem_key_string=allocated_vm.get('pem_key_string', None),
-                keyfile_path=allocated_vm.get('key_file_path', None),
+                key_file_path=allocated_vm.get('key_file_path', None),
                 resource_manager_ep=resource_manager['endpoint'],
                 vm_id=allocated_vm['name']
             ))

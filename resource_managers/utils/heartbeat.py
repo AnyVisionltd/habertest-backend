@@ -5,8 +5,8 @@ import logging
 import aiohttp
 
 
-async def send_heartbeats(rm_info, allocator_ep):
-    uri = "http://%s/api/resource_manager/heartbeat" % allocator_ep
+async def send_heartbeats(rm_info, provisioner_ep):
+    uri = "http://%s/api/resource_manager/heartbeat" % provisioner_ep
     logging.info(f'starting to send heartbeats with info: {rm_info} to {uri}')
     while True:
         try:

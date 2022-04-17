@@ -1,0 +1,18 @@
+# docker build -t hardvisor -f Dockerfile.hardvisor .
+
+FROM ubuntu:18.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    curl python3.8 python3-pip python3.8-dev vim iputils-ping
+
+RUN ln -sf -T /usr/bin/python3.8 /usr/bin/python
+
+RUN python -m pip install boto3 aiohttp requests ipdb pytest pytest-asyncio watchdog pdbpp argh aioredis pyyaml \
+    asyncio-redis redis
+
+COPY . /root/resource_managers
+WORKDIR /root/resource_managers
+
+CMD python -m hardvisor

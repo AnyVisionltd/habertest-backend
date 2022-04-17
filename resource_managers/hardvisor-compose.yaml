@@ -1,0 +1,34 @@
+---
+version: "3.7"
+services:
+  hardvisor:
+    image: gcr.io/anyvision-training/habertest-hardvisor:latest
+    container_name: hardvisor
+    build:
+      context: .
+      dockerfile: Dockerfile.hardvisor
+    environment:
+      - HABERTEST_HARDVISOR_IP=${HABERTEST_HARDVISOR_IP}
+      - HABERTEST_HARDVISOR_PORT=${HABERTEST_HARDVISOR_PORT}
+      - HABERTEST_PROVISONER_ADDRESS=${HABERTEST_PROVISONER_ADDRESS}
+      - HABERTEST_HARDVISOR_CONFIG=/root/.habertest/hardvisor.yaml
+      - HABERTEST_HARDVISOR_ID=$HABERTEST_HARDVISOR_ID
+    volumes:
+      - ${HOME}/.habertest:/root/.habertest
+      - .:/root/resource_managers
+    ports:
+      - 9081:8080
+    restart: always
+    depends_on:
+      - redis
+    working_dir: /root/resource_managers
+    command: watchmedo auto-restart --patterns="*.py;*.yaml" --recursive -- python -m hardvisor
+  redis:
+    image: redis:5.0.7
+    container_name: redis
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
+    restart: always
+    ports:
+      - 6380:6379
