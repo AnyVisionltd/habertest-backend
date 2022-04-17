@@ -13,6 +13,8 @@ services:
       - HABERTEST_PROVISONER_ADDRESS=${HABERTEST_PROVISONER_ADDRESS}
       - HABERTEST_HARDVISOR_CONFIG=/root/.habertest/hardvisor.yaml
       - HABERTEST_HARDVISOR_ID=$HABERTEST_HARDVISOR_ID
+      - HABERTEST_SSL_CERT=$HABERTEST_SSL_CERT
+      - HABERTEST_SSL_KEY=$HABERTEST_SSL_KEY
     volumes:
       - ${HOME}/.habertest:/root/.habertest
       - .:/root/resource_managers
