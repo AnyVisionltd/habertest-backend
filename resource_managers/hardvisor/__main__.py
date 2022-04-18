@@ -69,8 +69,7 @@ if __name__ == '__main__':
     machine_manager = manager.HardwareManager(redis_client, loop)
     hardvisor.HardVisor(app, machine_manager)
 
-    app["info"] = dict(alias=f'{getpass.getuser()}-{socket.gethostname()}-hardvisor', rm_type='hardvisor',
-                       endpoint=f'{args.ip}:{args.port}')
+    app["info"] = dict(alias=f'{args.hardvisor_id}', rm_type='hardvisor', endpoint=f'{args.ip}:{args.port}')
 
     if args.provisioner is not None:
         app["provisioner"] = args.provisioner
