@@ -47,6 +47,7 @@ if __name__ == '__main__':
                         help="path to config file",
                         default=os.getenv("HABERTEST_HARDVISOR_CONFIG", os.path.expanduser("~/.habertest/hardvisor.yaml")))
     parser.add_argument("--log-level", default=os.getenv("LOG_LEVEL", "DEBUG"))
+    parser.add_argument("--log-file-path", dest='log_file_path', default=os.getenv("LOG_FILE_PATH", '/var/log/hardvisor.log'))
     parser.add_argument("--hardvisor-id", default=os.getenv("HABERTEST_HARDVISOR_ID", f"{getpass.getuser()}-{socket.gethostname()}-hardvisor"))
     parser.add_argument("--provisioner", dest='provisioner', help="Provisioner address", type=str,
                         required=False, default=os.environ.get('HABERTEST_PROVISONER_ADDRESS'))
@@ -57,7 +58,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     anylogging.configure_logging(root_level=args.log_level, console_level=args.log_level, file_level=args.log_level,
-                                 filename='/var/log/hardvisor.log')
+                                 filename=args.log_file_path)
 
     app = web.Application()
     loop = asyncio.get_event_loop()
