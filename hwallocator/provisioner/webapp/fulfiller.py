@@ -26,8 +26,19 @@ class Fulfiller(object):
         log.debug(f"trying to fulfill: {allocation_request}")
 
         potential_fulfillers = await self.find_potential_fulfillers(allocation_id)
+        possible = True
 
-        if not potential_fulfillers:
+        # Check if all resource_managers can togather provision requested machines
+        if potential_fulfillers:
+            possible_machines = set()
+            for fulfiller in potential_fulfillers:
+                possible_machines.update(fulfiller[1])
+            if len(possible_machines) != len(allocation_request['demands'].keys()):
+                possible = False
+        else:
+            possible = False
+
+        if not possible:
             allocation = await self.redis.allocations(allocation_id)
             allocation.update(status="unfulfillable", message="Allocator doesnt have resource_managers which can fulfill demands")
             await self.redis.delete("allocations", allocation_id)
@@ -36,31 +47,45 @@ class Fulfiller(object):
         log.debug(f"found potential fulfillers: {potential_fulfillers}")
         async with self.fulfill_lock:
             log.debug("holding fulfill_lock")
-            while potential_fulfillers:
-                chosen_rm = await self.choose_from(potential_fulfillers)
-                log.debug(f"chosen rm: {chosen_rm}")
-                potential_fulfillers.remove(chosen_rm)
+
+            # Remove from potential fullfiler hosts which other fulfillers can provision to avoid duplicates
+            for potential_fulfiller, hosts in potential_fulfillers:
+                tmp_fulfillers = potential_fulfillers.copy()
+                tmp_fulfillers.remove((potential_fulfiller, hosts))
+                for host in hosts:
+                    if host in sum([tmp_hosts for fullfiler, tmp_hosts in tmp_fulfillers], []):
+                        hosts.remove(host)
+
+                await self.redis.update_status(allocation_id,
+                                       status="allocating",
+                                       rm_endpoint=potential_fulfiller['endpoint'],
+                                       message="in progress")
+
+            for fulfiller, hosts in potential_fulfillers:
+                request = await self.redis.allocations(allocation_id)
+                for host in list(request['demands']):
+                    if host not in hosts:
+                        request['demands'].pop(host)
                 try:
-                    await self.redis.update_status(allocation_id,
-                                                   status="allocating",
-                                                   rm_endpoint=chosen_rm['endpoint'],
-                                                   message="in progress")
                     result = await shield(
-                        rm_requestor.allocate(chosen_rm['endpoint'], await self.redis.allocations(allocation_id)))
+                        rm_requestor.allocate(fulfiller['endpoint'], request))
                 except asyncio.CancelledError:
                     log.debug(f"allocate task was cancelled.")
                     await self.redis.update_status(allocation_id, status="cancelled",
                                                    message="client cancelled after allocation started but before allocation was finish")
-                    continue
+                    break
+
                 except Exception as e:
-                    log.debug(f"exception {type(e)} when trying to allocate on rm {chosen_rm}")
+                    log.debug(f"exception {type(e)} when trying to allocate on rm {fulfiller}")
                     await self.redis.update_status(allocation_id, status="exception", message=str(e))
-                    log.exception(f"{chosen_rm['alias']} couldnt fulfill demands. remaining potentials: "
-                                  f"{[potential['alias'] for potential in potential_fulfillers]}")
-                    continue
+
+                    log.exception(f"{fulfiller['alias']} couldnt fulfill demands.")
+                    break
+
                 log.debug(f'suceeded fullfilling request: {result}')
-                await self.redis.save_fulfilled_request(allocation_id, chosen_rm, result)
-                return await self.redis.allocations(allocation_id)
+                await self.redis.save_fulfilled_request(allocation_id, fulfiller, result)
+            return await self.redis.allocations(allocation_id)
+
         log.debug("released fulfill_lock")
         await self.redis.update_status(allocation_id, status="busy",
                                  message="Currently unable to fulfill requirements but should be able to in the future")
@@ -71,7 +96,7 @@ class Fulfiller(object):
         return random.choice(resource_managers)
 
     async def remove_unavailable_rms(self, live_rms, all_rms):
-        live = {potential['key'] for potential in live_rms}
+        live = {potential[0]['key'] for potential in live_rms}
         rms = set(key for key in all_rms.keys())
         dead = list(rms.difference(live))
         if dead:

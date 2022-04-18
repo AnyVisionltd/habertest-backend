@@ -11,10 +11,9 @@ async def theoretically_fulfill(resource_manager, data):
                 result = await resp.json()
                 if resp.status != 200:
                     raise Exception(f"cant theoretically fulfill: res: {result}")
-                return resource_manager
+                return resource_manager, result['machines']
     except:
         raise ConnectionError(f"Couldnt connect to resource_manager {rm_ep}")
-
 
 async def allocate(rm_ep, data):
     url = f"http://{rm_ep}/fulfill/now"
