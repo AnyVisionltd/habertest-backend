@@ -1,13 +1,17 @@
 import asyncio
 import logging
-
+import ssl
 import aiohttp
 
 
 class Cleaner:
-    def __init__(self, provisioner_ip, manager):
+    def __init__(self, provisioner_ip, manager, cert=None, key=None):
         self.provisioner_ep = provisioner_ip
         self.manager = manager
+        self.ssl_cert = (cert, key)
+        if cert:
+            self.ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+            self.ssl_context.load_cert_chain(certfile=self.ssl_cert[0], keyfile=self.ssl_cert[1])
 
     async def clean_dangling_hardware(self):
         while True:
@@ -22,7 +26,8 @@ class Cleaner:
     async def active_allocation_ids(self):
         uri = "http://%s/api/jobs" % self.provisioner_ep
         logging.info(f"getting allocations from {uri}")
-        async with aiohttp.ClientSession() as client:
+        conn = aiohttp.TCPConnector(ssl_context=self.ssl_context)
+        async with aiohttp.ClientSession(connector=conn) as client:
             async with client.get(
                     uri) as resp:
                 data = await resp.json()

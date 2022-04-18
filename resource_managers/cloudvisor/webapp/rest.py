@@ -67,29 +67,31 @@ class CloudVisor(object):
         return web.json_response({'info': [instance.json] for instance in instances}, status=200)
 
     def translate_to_vms(self, request):
-        vm_requests = list()
+        vm_requests = dict()
         client_external_ip = request['requestor']['external_ip']
         allocation_id = request.get('allocation_id', str(uuid.uuid4()))
         for host, reqs in request['demands'].items():
             base_image = reqs.pop("base_image", 'automation_infra_1.0')
             instance_type = reqs.pop("instance_type", None)
             num_gpus = reqs.pop("gpus", '1')
+            arch = reqs.pop("arch", "x86_64")
             instance = VM(client_external_ip=client_external_ip, num_gpus=num_gpus, base_image=base_image,
                           instance_type=instance_type, allocation_id=allocation_id,
-                          requestor=request['requestor'])
-            vm_requests.append(instance)
+                          requestor=request['requestor'], arch=arch)
+            vm_requests[host] = instance
         return vm_requests
 
     async def check_fulfill(self, request):
         requirements = await request.json()
         logging.info(f"received a check_fulfill request: {requirements}")
         vm_requests = self.translate_to_vms(requirements)
-        possible = list()
-        for vm in vm_requests:
-            possible.append(await self.ec2_manager.check_allocate_instance(vm))
 
-        if all(possible):
-            return web.json_response({"status": "Success"}, status=200)
+        possibles = dict()
+        for host, vm_request in vm_requests.items():
+            possibles[host] = await self.ec2_manager.check_allocate_instance(vm_request)
+
+        if any(possibles.values()):
+            return web.json_response({"status": "Success", 'machines': [host for host, possible in possibles.items() if possible]}, status=200)
         else:
             return web.json_response({"status": "Unable"}, status=406)
 
@@ -103,6 +105,6 @@ class CloudVisor(object):
         vm_requests = self.translate_to_vms(requirements)
 
         allocated_machines = await asyncio.gather(
-            *[self.ec2_manager.allocate_instance(vm) for vm in vm_requests])
+            *[self.ec2_manager.allocate_instance(vm) for host, vm in vm_requests.items()])
         return web.json_response(
                     {'status': 'Success', 'info': [vm.json for vm in allocated_machines]}, status=200)

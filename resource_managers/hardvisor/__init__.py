@@ -27,13 +27,16 @@ class HardVisor(object):
         machine_reqs = list()
         for host, reqs in request['demands'].items():
             machine = {"allocation_id": allocation_id,
-                       "requestor": requestor}
+                       "requestor": requestor,
+                       "host": host}
             if "gpu" in reqs:
                 machine['gpu'] = reqs.pop('gpu')
             if "cpu" in reqs:
                 machine['cpu'] = reqs.pop("cpu")
             if "type" in reqs:
                 machine['type'] = reqs.pop("type")
+
+            machine['arch'] = reqs.pop("arch", 'x86_64')
             machine_reqs.append(machine)
         return machine_reqs
 
@@ -45,11 +48,19 @@ class HardVisor(object):
     async def check_fulfill(self, request):
         requirements = await request.json()
         demands = self.parse_requirements(requirements)
-        possible = await asyncio.gather(*[
+        possibles = await asyncio.gather(*[
             self.machine_manager.check_allocate(demand) for demand in demands
         ])
-        if all(possible):
-            return web.json_response({"status": "Success"}, status=200)
+
+        final_possibles = dict()
+        for possible in possibles:
+            final_possibles.update(possible)
+
+        possibles = final_possibles
+
+
+        if any(possibles.values()):
+            return web.json_response({"status": "Success", "machines": [host for host, possible in possibles.items() if possible]}, status=200)
         else:
             return web.json_response({"status": "Unable"}, status=406)
 

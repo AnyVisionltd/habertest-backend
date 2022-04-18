@@ -3,10 +3,11 @@ from builtins import getattr
 
 from cloudvisor.ec2_wrapper import EC2Wrapper
 from common import vm as vm_base
+from common.instance_types import INSTANCE_TYPES_BY_ARCH
 
 
 class VM(vm_base.VM):
-    def __init__(self, base_image, client_external_ip, num_gpus,  user='ubuntu', instance_type=None, pem_key_string=None, name=None, num_cpus=0, memsize=0,
+    def __init__(self, base_image, client_external_ip, num_gpus, arch,  user='ubuntu', instance_type=None, pem_key_string=None, name=None, num_cpus=0, memsize=0,
                  net_ifaces=None, api_version=None, uuid=None, allocation_id=None, requestor=dict()):
         super().__init__(name=name, num_cpus=num_cpus, memsize=memsize, base_image=base_image,
                          net_ifaces=net_ifaces, api_version=api_version, uuid=uuid, allocation_id=allocation_id,
@@ -20,6 +21,7 @@ class VM(vm_base.VM):
         self.instance_type = instance_type
         self.user = user
         self.pem_key_string = pem_key_string
+        self.arch = arch
 
     @classmethod
     def from_aws_instance(cls, instance):
@@ -31,6 +33,7 @@ class VM(vm_base.VM):
                    allocation_id=tags.get('allocation_id', None),
                    name=instance.id,
                    num_gpus=None,
+                   arch=instance.architecture,
                    net_ifaces=[dict(ip=instance.public_ip_address)]
                    )
         vm.tags = tags

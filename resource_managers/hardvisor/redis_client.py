@@ -22,8 +22,10 @@ class RedisClient:
         conn = await self.conn
         for name, conn_details in machines.items():
             conn_details.setdefault("name", name)
+            conn_details.setdefault("arch", "x86_64")
             conn_details['net_ifaces'] = list()
             conn_details['net_ifaces'].append({'ip': conn_details['ip']})
+            conn_details['status'] = 'available'
         await asyncio.gather(
             *[conn.hsetnx("resources", machine, json.dumps(conn_details)) for machine, conn_details in machines.items()]
         )

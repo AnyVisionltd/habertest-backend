@@ -17,7 +17,7 @@ from utils import anylogging, ip, heartbeat
 
 async def start_daemons(app):
     app["heartbeats"] = app.loop.create_task(
-        heartbeat.send_heartbeats(app['info'], app['provisioner']))
+        heartbeat.send_heartbeats(app['info'], app['provisioner'], app['ssl_cert'], app['ssl_key']))
 
     app.loop.create_task(app["cleaner"].clean_dangling_hardware())
 
@@ -47,13 +47,18 @@ if __name__ == '__main__':
                         help="path to config file",
                         default=os.getenv("HABERTEST_HARDVISOR_CONFIG", os.path.expanduser("~/.habertest/hardvisor.yaml")))
     parser.add_argument("--log-level", default=os.getenv("LOG_LEVEL", "DEBUG"))
+    parser.add_argument("--log-file-path", dest='log_file_path', default=os.getenv("LOG_FILE_PATH", '/var/log/hardvisor.log'))
     parser.add_argument("--hardvisor-id", default=os.getenv("HABERTEST_HARDVISOR_ID", f"{getpass.getuser()}-{socket.gethostname()}-hardvisor"))
     parser.add_argument("--provisioner", dest='provisioner', help="Provisioner address", type=str,
                         required=False, default=os.environ.get('HABERTEST_PROVISONER_ADDRESS'))
+    parser.add_argument("--ssl-key", dest='ssl_key', help="Client certificate ssl private key", type=str,
+                        required=False, default=os.environ.get('HABERTEST_SSL_KEY'))
+    parser.add_argument("--ssl-cert", dest='ssl_cert', help="Client certificate ssl public key", type=str,
+                        required=False, default=os.environ.get('HABERTEST_SSL_CERT'))
 
     args = parser.parse_args()
     anylogging.configure_logging(root_level=args.log_level, console_level=args.log_level, file_level=args.log_level,
-                                 filename='/var/log/hardvisor.log')
+                                 filename=args.log_file_path)
 
     app = web.Application()
     loop = asyncio.get_event_loop()
@@ -64,12 +69,17 @@ if __name__ == '__main__':
     machine_manager = manager.HardwareManager(redis_client, loop)
     hardvisor.HardVisor(app, machine_manager)
 
-    app["info"] = dict(alias=f'{getpass.getuser()}-{socket.gethostname()}-hardvisor', rm_type='hardvisor',
-                       endpoint=f'{args.ip}:{args.port}')
+    app["info"] = dict(alias=f'{args.hardvisor_id}', rm_type='hardvisor', endpoint=f'{args.ip}:{args.port}')
 
     if args.provisioner is not None:
         app["provisioner"] = args.provisioner
-        app["cleaner"] = periodically.Cleaner(args.provisioner, machine_manager)
+        if args.ssl_key:
+            assert os.path.exists(args.ssl_key), f"cert file for communication with provisioner doesnt exist at {args.ssl_key}"
+            app["ssl_key"] = args.ssl_key
+        if args.ssl_cert:
+            assert os.path.exists(args.ssl_cert), f"cert file for communication with provisioner doesnt exist at {args.ssl_cert}"
+            app["ssl_cert"] = args.ssl_cert
+        app["cleaner"] = periodically.Cleaner(args.provisioner, machine_manager, args.ssl_cert, args.ssl_key)
         logging.info(f"sending info: {app['info']} to provisioner {args.provisioner}")
         app.on_startup.append(start_daemons)
 
